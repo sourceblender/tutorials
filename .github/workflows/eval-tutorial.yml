@@ -11,6 +11,9 @@ on:
       - ".github/workflows/eval-tutorial.yml"
       - "evals/write-an-eval-that-can-say-no/**"
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -18,16 +21,23 @@ concurrency:
 jobs:
   run-example:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     defaults:
       run:
         working-directory: evals/write-an-eval-that-can-say-no
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v8.1.0
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - name: Install locked dependencies
-        run: uv sync --locked
+        run: |
+          uv sync --locked
+          uv run python --version
       - name: Regenerate frozen rows and check expected hash
         run: |
           uv run python freeze.py
@@ -48,3 +58,22 @@ jobs:
           uv run python run_eval.py broken
           result=$?
           test "$result" -eq 1
+      - name: Altered inputs must return exit 2
+        run: |
+          cp evals/gate.toml gate.toml.bak
+          printf '\n' >> evals/gate.toml
+          set +e
+          uv run python run_eval.py candidate
+          result=$?
+          set -e
+          mv gate.toml.bak evals/gate.toml
+          test "$result" -eq 2
+      - name: Missing model must return exit 3
+        run: |
+          mv candidate.joblib candidate.joblib.bak
+          set +e
+          uv run python run_eval.py candidate
+          result=$?
+          set -e
+          mv candidate.joblib.bak candidate.joblib
+          test "$result" -eq 3
