@@ -24,6 +24,10 @@ def need(share, total):
 
 def decide(gate, inc_held, new_held, inc_cases, new_cases):
     """The whole gate as one pure function over per-row right/wrong lists."""
+    # An empty or mismatched input must be an error, never a verdict: zip() would
+    # silently truncate, and zero rows would pass every condition.
+    if not (len(inc_held) == len(new_held) > 0 and len(inc_cases) == len(new_cases) > 0):
+        raise ValueError("the gate needs non-empty, equal-length results for both models")
     n_held, n_cases = len(new_held), len(new_cases)
     gain = sum(new_held) - sum(inc_held)
     regressions = [i for i, (a, b) in enumerate(zip(inc_cases, new_cases)) if a and not b]
@@ -51,11 +55,15 @@ def main():
     cases = [json.loads(l) for l in Path("evals/cases.jsonl").read_text().splitlines()]
     held = [json.loads(l) for l in Path("evals/heldout.jsonl").read_text().splitlines()]  # the frozen bytes
 
+    def right(m, rows):
+        preds = m.predict([r["text"] for r in rows])
+        if len(preds) != len(rows):
+            raise ValueError(f"got {len(preds)} predictions for {len(rows)} rows")
+        return [int(p) == r["label"] for p, r in zip(preds, rows)]
+
     def score(name):
         m = joblib.load(f"{name}.joblib")
-        held_ok = [int(p) == r["label"] for p, r in zip(m.predict([r["text"] for r in held]), held)]
-        case_ok = [int(p) == c["label"] for p, c in zip(m.predict([c["text"] for c in cases]), cases)]
-        return held_ok, case_ok
+        return right(m, held), right(m, cases)
 
     inc_held, inc_cases = score("incumbent")
     name = sys.argv[1] if len(sys.argv) > 1 else "candidate"

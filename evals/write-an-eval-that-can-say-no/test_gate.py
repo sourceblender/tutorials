@@ -34,6 +34,15 @@ class GateLogic(unittest.TestCase):
         checks, _ = decide(GATE, INC_HELD, [True] * 214 + [False] * 86, weak_inc, [True] * 13 + [False] * 7)
         self.assertEqual(list(checks.values()), [True, True, False])
 
+    def test_malformed_input_is_an_error_not_a_verdict(self):
+        for inc_held, new_held, inc_cases, new_cases in [
+            ([], [], [], []),                                  # nothing scored
+            (INC_HELD, INC_HELD, INC_CASES, [True] * 5),       # candidate scored on 5 of 20 cases
+            (INC_HELD, INC_HELD[:299], INC_CASES, INC_CASES),  # one held-out row missing
+        ]:
+            with self.assertRaises(ValueError):
+                decide(GATE, inc_held, new_held, inc_cases, new_cases)
+
 
 if __name__ == "__main__":
     unittest.main()
