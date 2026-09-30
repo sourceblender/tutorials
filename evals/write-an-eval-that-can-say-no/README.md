@@ -41,6 +41,7 @@ For the optional uncertainty calculation, run `uv run python bootstrap.py`. It r
 - `run_eval.py` — scores them and applies the gate.
 - `test_gate.py` — a passing fixture, the exact threshold boundary, independent failures for each condition, and malformed input that must raise an error rather than produce a verdict.
 - `bootstrap.py` — optional paired bootstrap over the held-out rows.
+- `sensitivity.py` — optional check run after the result: retrains both models on training shuffle seeds 0–19 and applies the same gate, reproducing the article's 20-run counts. It is not part of the gate.
 
 The visible cases are meant for iteration. In a real release process, keep an independent promotion set away from the jobs and people tuning the model, and combine the offline gate with review and live checks. A pass here only means the declared offline conditions were met.
 
