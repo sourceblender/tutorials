@@ -1,6 +1,6 @@
 # Write an Eval That Can Say No
 
-Runnable companion to Eric Mey's Hugging Face tutorial. The article explains how to choose the release decision, write cases, interpret failures, and carry this method into an application. **Article link will be added when it is published.**
+Runnable companion to Eric Mey's [Hugging Face tutorial](https://huggingface.co/blog/ericmey/write-an-eval-that-can-say-no). The article explains how to choose the release decision, write cases, interpret failures, and carry this method into an application.
 
 This small sentiment classifier makes the failure visible: the candidate improves held-out accuracy from **0.710 to 0.780**, yet breaks three authored cases the incumbent got right. The gate rejects it. The deliberately broken model is a negative control; synthetic gate tests prove the gate can also pass. These are demonstration results on SST-2, not evidence about a production system.
 
