@@ -6,11 +6,9 @@ Exit code 0 = eligible for the next release step, 1 = rejected,
 2 = eval inputs were altered, 3 = the eval could not run (e.g. a model file
 is missing). A crash must never look like a verdict.
 """
-import hashlib, json, math, sys, tomllib
+import json, math, sys, tomllib
 from fractions import Fraction
 from pathlib import Path
-
-FROZEN = ("evals/cases.jsonl", "evals/heldout.jsonl", "evals/gate.toml")
 
 
 def need(share, total):
@@ -44,10 +42,9 @@ def decide(gate, inc_held, new_held, inc_cases, new_cases):
 def main():
     # Everything that can fail lives inside main(), so any crash becomes exit 3.
     import joblib  # third-party: a missing install is a crash, not a verdict
-    h = hashlib.sha256()
-    for name in FROZEN:
-        h.update(Path(name).read_bytes())
-    if h.hexdigest() != Path("evals/FROZEN.sha256").read_text().strip():
+    from freeze import frozen_digest  # step 3's file; missing, it is a crash (3), not a verdict
+    digest = frozen_digest()
+    if digest != Path("evals/FROZEN.sha256").read_text().strip():
         print("REFUSED: eval inputs changed after freezing. Re-freeze deliberately, and say why.", file=sys.stderr)
         return 2
 
@@ -69,9 +66,10 @@ def main():
     name = sys.argv[1] if len(sys.argv) > 1 else "candidate"
     new_held, new_cases = score(name)
 
-    print(f"{'':12}{'held-out (300)':>16}{'authored (20)':>16}")
-    print(f"{'incumbent':12}{sum(inc_held) / len(held):>16.3f}{sum(inc_cases):>13}/20")
-    print(f"{name:12}{sum(new_held) / len(held):>16.3f}{sum(new_cases):>13}/20")
+    n_held, n_cases = len(held), len(cases)
+    print(f"{'':12}{f'held-out ({n_held})':>16}{f'authored ({n_cases})':>16}")
+    print(f"{'incumbent':12}{sum(inc_held) / n_held:>16.3f}{sum(inc_cases):>13}/{n_cases}")
+    print(f"{name:12}{sum(new_held) / n_held:>16.3f}{sum(new_cases):>13}/{n_cases}")
 
     print(f"\nMisses for {name} on authored cases (read these, don't just count them):")
     for c, ok in zip(cases, new_cases):
@@ -79,7 +77,7 @@ def main():
             print(f"  {c['id']:7} [{c['why']}] {c['text']!r} (expected {'pos' if c['label'] else 'neg'})")
 
     checks, regressions = decide(gate, inc_held, new_held, inc_cases, new_cases)
-    print("\nGate (declared before any model was trained):")
+    print(f"\nGate (frozen inputs {digest[:16]}):")
     for label, passed in checks.items():
         extra = f" {[cases[i]['id'] for i in regressions]}" if "regressions" in label and regressions else ""
         print(f"  {'PASS' if passed else 'FAIL'}  {label}{extra}")

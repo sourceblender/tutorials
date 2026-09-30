@@ -18,7 +18,7 @@ uv run python train.py
 uv run python -m unittest test_gate
 ```
 
-The freeze step regenerates `evals/heldout.jsonl` from the dataset revision pinned in `freeze.py`. That file is intentionally untracked because the Hub lists the dataset license as unknown. The committed hash is the expected value; the `git diff` command above checks that the regenerated rows, authored cases, and gate policy still produce it.
+The freeze step regenerates `evals/heldout.jsonl` from the dataset revision pinned in `freeze.py`. That file is intentionally untracked because the Hub lists the dataset license as unknown. The committed hash is the expected value; the `git diff` command above checks that the regenerated rows, authored cases, and gate policy still produce it. `freeze.py` also prints a hash of the held-out rows alone: `a3a3519a046a328d` means your data matches ours, independent of how the other files were saved.
 
 Now run the candidate and the known-bad control. **Exit 1 is expected for both**: it means the gate rejected the model.
 
