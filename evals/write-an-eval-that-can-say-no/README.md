@@ -31,6 +31,8 @@ The scorer uses distinct exits: `0` eligible for the next release step, `1` reje
 
 For the optional uncertainty calculation, run `uv run python bootstrap.py`. It resamples the same 300 held-out rows for both models and reports the paired interval printed in the article.
 
+To reproduce the article's 20-seed sensitivity check, run `uv run python sensitivity.py` after `freeze.py`. It retrains both models on training shuffle seeds 0–19 with the same recipe, applies the same gate to each pair, and prints one line for each seed plus the summary (20 / 16 / 4 / 2 / 13). It is a check run after the result, not part of the gate.
+
 ## Files
 
 - `evals/gate.toml` — three illustrative release conditions, written before training.
