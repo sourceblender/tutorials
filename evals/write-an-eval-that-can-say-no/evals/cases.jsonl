@@ -1,0 +1,20 @@
+{"id": "neg-01", "text": "not a bad movie at all , honestly", "label": 1, "why": "negated negative"}
+{"id": "neg-02", "text": "i did not enjoy a single minute of it", "label": 0, "why": "negated positive"}
+{"id": "neg-03", "text": "it is not as funny as it thinks it is", "label": 0, "why": "negated comparison"}
+{"id": "neg-04", "text": "never boring , never predictable", "label": 1, "why": "stacked negation"}
+{"id": "con-01", "text": "the cast is wonderful but the script is a mess", "label": 0, "why": "contrast, second clause wins"}
+{"id": "con-02", "text": "slow start , but the last hour is terrific", "label": 1, "why": "contrast, second clause wins"}
+{"id": "con-03", "text": "beautiful to look at , painful to sit through", "label": 0, "why": "contrast"}
+{"id": "con-04", "text": "a clumsy premise that somehow becomes moving", "label": 1, "why": "contrast"}
+{"id": "pos-01", "text": "a sharp , funny and generous film", "label": 1, "why": "plain positive"}
+{"id": "pos-02", "text": "the best thing i have seen all year", "label": 1, "why": "plain positive"}
+{"id": "pos-03", "text": "warm , smart and beautifully acted", "label": 1, "why": "plain positive"}
+{"id": "pos-04", "text": "it earns every one of its tears", "label": 1, "why": "positive without sentiment words"}
+{"id": "neg-05", "text": "a tedious , joyless slog", "label": 0, "why": "plain negative"}
+{"id": "neg-06", "text": "the worst kind of lazy sequel", "label": 0, "why": "plain negative"}
+{"id": "neg-07", "text": "i checked my watch more than the plot deserved", "label": 0, "why": "negative without sentiment words"}
+{"id": "neg-08", "text": "flat , loud and instantly forgettable", "label": 0, "why": "plain negative"}
+{"id": "mix-01", "text": "too long , yet i would watch it again", "label": 1, "why": "mixed, verdict positive"}
+{"id": "mix-02", "text": "great soundtrack , nothing else", "label": 0, "why": "faint praise"}
+{"id": "mix-03", "text": "fine , i guess , if you have nothing better to do", "label": 0, "why": "faint praise"}
+{"id": "mix-04", "text": "rough edges and all , it works", "label": 1, "why": "concession then verdict"}

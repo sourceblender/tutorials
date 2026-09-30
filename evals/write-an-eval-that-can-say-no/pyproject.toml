@@ -1,0 +1,13 @@
+[project]
+name = "write-an-eval-that-can-say-no"
+version = "1.0.0"
+description = "Companion code for the tutorial 'Write an Eval That Can Say No'"
+requires-python = ">=3.11"
+dependencies = [
+    "datasets==5.0.1",
+    "joblib==1.6.0",
+    "scikit-learn==1.9.1",
+]
+
+[tool.uv]
+package = false

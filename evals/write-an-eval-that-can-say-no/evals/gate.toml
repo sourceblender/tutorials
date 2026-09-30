@@ -1,0 +1,8 @@
+# evals/gate.toml
+# Written BEFORE any model was trained or scored. Changing these after seeing
+# results turns the eval into a description of what you got.
+[gate]
+# The candidate replaces the incumbent only if all of these hold:
+min_heldout_gain = 0.02      # beats the incumbent on the held-out sample by >= 2 percentage points
+max_case_regressions = 0     # fixes nothing by breaking an authored case the incumbent got right
+min_case_accuracy = 0.70     # and clears an absolute floor on the authored cases

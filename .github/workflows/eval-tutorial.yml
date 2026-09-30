@@ -1,0 +1,50 @@
+name: Eval tutorial
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/eval-tutorial.yml"
+      - "evals/write-an-eval-that-can-say-no/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/eval-tutorial.yml"
+      - "evals/write-an-eval-that-can-say-no/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  run-example:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: evals/write-an-eval-that-can-say-no
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v8.1.0
+        with:
+          python-version: "3.12"
+      - name: Install locked dependencies
+        run: uv sync --locked
+      - name: Regenerate frozen rows and check expected hash
+        run: |
+          uv run python freeze.py
+          git diff --exit-code -- evals/FROZEN.sha256
+      - name: Train models
+        run: uv run python train.py
+      - name: Test gate logic
+        run: uv run python -m unittest test_gate
+      - name: Candidate must be rejected
+        run: |
+          set +e
+          uv run python run_eval.py candidate
+          result=$?
+          test "$result" -eq 1
+      - name: Broken control must be rejected
+        run: |
+          set +e
+          uv run python run_eval.py broken
+          result=$?
+          test "$result" -eq 1
