@@ -4,8 +4,10 @@
            fall below 1.0 within 100 steps (we measured 0.005 at step 100 on an M5 Air). If it can't memorise
            one batch, something in loss / backward / optimizer is broken. Exits 1 on failure.
 (default)  A short real run: 300 steps on random training windows, with the same recipe as Friday's full run
-           (AdamW lr 1e-3, betas 0.9/0.95, weight decay 0.1, gradient clip 1.0, 200 warm-up steps then cosine
-           decay to 10%). Prints the learning-rate schedule first, then the loss every 25 steps.
+           (AdamW lr 1e-3, betas 0.9/0.95, weight decay 0.1, gradient clip 1.0). The learning rate is the
+           measured recipe's: a linear ramp over the first 200 steps MULTIPLIED by a cosine that decays from step 1
+           to 10% at the last step, so it never quite reaches 1e-3 (see lr_at). Writes the whole schedule to
+           runs/lr_schedule.csv for plotting and prints a few points, then the loss every 25 steps.
 --cpu-short  Smaller batches for machines without a GPU.
 
 Both modes stop on a non-finite loss (NaN or inf) and save what they have to runs/emergency.pt first, so a
@@ -18,13 +20,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+import frozen
 from model import GPT, device
 
 V, SEQ, LR, WARMUP = 4096, 256, 1e-3, 200
 
 
 def lr_at(step, total):
-    """Linear warm-up to LR over WARMUP steps, then cosine decay to 10% of LR at the last step."""
+    """The measured recipe: a linear ramp min(1, step/WARMUP) times a cosine factor that starts decaying at step 1
+    and ends at 10% of LR. The two overlap, so the peak is below LR (about 3.9e-4 near step 100 of a 300-step run)."""
     warm = min(1.0, step / WARMUP)
     cosine = 0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * min(1.0, step / total)))
     return LR * warm * cosine
@@ -48,8 +52,10 @@ def main():
     ap.add_argument("--steps", type=int, default=300)
     ap.add_argument("--cpu-short", action="store_true", help="batch 8 instead of 32 (for CPU-only machines)")
     ap.add_argument("--device", choices=["auto", "cpu", "mps", "cuda"], default="auto")
+    ap.add_argument("--simulate-nan-at", type=int, default=0, help="force a non-finite loss at this step (shows the guard)")
     a = ap.parse_args()
     dev = device() if a.device == "auto" else a.device
+    frozen.check()
     torch.manual_seed(1234)
     tok = morpheme.Tokenizer.from_file(os.path.join("data", "tok4096.json"))
     train = np.array(tok.encode(open(os.path.join("data", "stories", "train.txt"), encoding="utf-8").read()).ids,
@@ -70,7 +76,10 @@ def main():
     else:
         steps, b = a.steps, (8 if a.cpu_short else 32)
         print(f"short run: {steps} steps, batch {b} x {SEQ} tokens on {dev}")
-        print("learning-rate schedule:", "  ".join(f"step {s}: {lr_at(s, steps):.2e}"
+        os.makedirs("runs", exist_ok=True)
+        with open(os.path.join("runs", "lr_schedule.csv"), "w") as f:
+            f.write("step,lr\n" + "".join(f"{s},{lr_at(s, steps):.8f}\n" for s in range(1, steps + 1)))
+        print("learning-rate schedule (all steps in runs/lr_schedule.csv):", "  ".join(f"step {s}: {lr_at(s, steps):.2e}"
                                                    for s in (1, 50, 100, 200, steps // 2 + 100, steps)))
     t0, loss = time.perf_counter(), None
     for step in range(1, steps + 1):
@@ -81,9 +90,11 @@ def main():
         with autocast(dev):
             logits = model(x)
         loss = F.cross_entropy(logits.reshape(-1, V).float(), y.reshape(-1))
+        if step == a.simulate_nan_at:
+            loss = loss * float("nan")  # a stand-in for a real blow-up, so the guard below can be seen working
         if not torch.isfinite(loss):
             os.makedirs("runs", exist_ok=True)
-            torch.save({"model": model.state_dict(), "step": step}, os.path.join("runs", "emergency.pt"))
+            torch.save({"model": model.state_dict(), "step": step - 1}, os.path.join("runs", "emergency.pt"))  # weights after step - 1 updates
             sys.exit(f"step {step}: loss is {loss.item()}; saved runs/emergency.pt and stopped")
         opt.zero_grad(set_to_none=True)
         loss.backward()

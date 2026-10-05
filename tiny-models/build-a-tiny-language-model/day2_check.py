@@ -16,6 +16,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+import frozen
 from model import GPT
 
 V, SEQ = 4096, 256
@@ -25,6 +26,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--default-init", action="store_true", help="use PyTorch's default init (shows the bug)")
     a = ap.parse_args()
+    frozen.check()
     torch.manual_seed(1234)
     tok = morpheme.Tokenizer.from_file(os.path.join("data", "tok4096.json"))
     val = np.array(tok.encode(open(os.path.join("data", "stories", "val.txt"), encoding="utf-8").read()).ids)
