@@ -1,8 +1,8 @@
 """Thursday and Friday: the full trainer, built so it can run unattended and resume where it stopped.
 
 The recipe is the one we measured: 6,000 steps of 32 random windows of 256 tokens, AdamW lr 1e-3 betas (0.9, 0.95)
-weight decay 0.1, gradient clip 1.0, bf16 autocast where supported. Learning rate: a linear ramp over the first 200
-steps multiplied by a cosine that decays from step 1 to 10% at the end (the factors overlap; see lr_at).
+weight decay 0.1, gradient clip 1.0, bf16 autocast where supported. Learning rate: linear warm-up to 1e-3 over 200
+steps, then cosine decay to 10% at the last step (schedule.py; its id is stored in every checkpoint).
 
 What makes it reliable (Thursday):
 - Tokens are encoded once and cached as a NumPy file next to the data, keyed by Monday's FROZEN.txt.
@@ -30,6 +30,7 @@ import torch
 import torch.nn.functional as F
 
 import frozen
+import schedule
 from model import GPT, device
 
 V, SEQ = 4096, 256
@@ -46,10 +47,6 @@ def tokens(name, fz, tok):
     if len(arr) != fz[f"{name}_tokens"]:
         sys.exit(f"{cache} has {len(arr)} tokens, FROZEN.txt says {fz[name + '_tokens']}")
     return arr
-
-
-def lr_at(step, total, peak, warmup):
-    return peak * min(1.0, step / warmup) * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * min(1.0, step / total))))
 
 
 def amp(dev):
@@ -87,7 +84,8 @@ def main():
     if a.cpu_short:
         a.batch, a.steps = 8, min(a.steps, 1000)
     dev = device() if a.device == "auto" else a.device
-    config = {"steps": a.steps, "batch": a.batch, "seq": SEQ, "lr": 1e-3, "warmup": 200, "eval_every": a.eval_every,
+    config = {"steps": a.steps, "batch": a.batch, "seq": SEQ, "lr": 1e-3, "warmup": 200, "schedule": schedule.SCHEDULE_ID,
+              "eval_every": a.eval_every,
               "seed": a.seed, "model": {"vocab": V, "seq": SEQ, "d": 256, "layers": 5, "heads": 4}}
     fz = frozen.check()
     inputs = {k: fz[k] for k in ("train.txt", "val.txt", "tok4096.json")}
@@ -162,7 +160,7 @@ def main():
     t0, seen = time.perf_counter(), 0
     for step in range(start, a.steps + 1):
         for g in opt.param_groups:
-            g["lr"] = lr_at(step, a.steps, config["lr"], config["warmup"])
+            g["lr"] = schedule.lr_at(step, a.steps, config["lr"], config["warmup"])
         gen_before, rng_before = gen.get_state(), torch.get_rng_state()
         starts = torch.randint(0, len(train) - SEQ - 1, (a.batch,), generator=gen).tolist()
         x, y = windows(train, starts)

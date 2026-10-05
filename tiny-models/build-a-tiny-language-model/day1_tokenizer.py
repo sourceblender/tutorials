@@ -11,7 +11,7 @@ silently continued, because every later number depends on these exact token ids.
 """
 import hashlib, os, shutil, subprocess, sys
 
-EXPECT = "2891efc98a86f27fece7a62bbe96403231b09e58711c3ae74e14c4fcf1a49d45"
+EXPECT = "c9ced905c3aba62a08acf63e67575f962fb87465407d18ea2da10090639fa1b9"
 OUT = os.path.join("data", "tok4096.json")
 
 

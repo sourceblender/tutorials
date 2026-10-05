@@ -1,10 +1,14 @@
 """Monday: fetch the story data and split it into train/val.
 
 Downloads the first 40 MiB of TinyStoriesV2-GPT4-train.txt from a pinned dataset revision (roneneldan/TinyStories,
-CDLA-Sharing-1.0), splits it into stories on "<|endoftext|>", drops the cut-off last piece, keeps the first 95% of
-stories for training and the rest for validation, and writes data/stories/{train,val}.txt with stories joined by
-"\n<|endoftext|>\n". Every file is checked against the hash the tutorial was built with; a mismatch exits 1.
-The data is downloaded, not redistributed.
+CDLA-Sharing-1.0) and splits it into stories on "<|endoftext|>", dropping the cut-off last piece. This is our own
+held-out split of that one training file, not TinyStories' published validation set.
+
+Each story goes to validation if a hash of its text (whitespace collapsed) falls in the lowest 5 of 100 buckets,
+otherwise to training. The hash, not the story's position in the file, decides, so file order can't sneak into
+the split, and identical stories always land on the same side. Stories keep their file order within each split
+and are written as "\n<|endoftext|>\n"-joined text to data/stories/{train,val}.txt. Every file is checked against
+the hash the tutorial was built with; a mismatch exits 1. The data is downloaded, not redistributed.
 """
 import hashlib, os, sys, urllib.request
 
@@ -13,11 +17,18 @@ URL = f"https://huggingface.co/datasets/roneneldan/TinyStories/resolve/{REV}/Tin
 NBYTES = 40 * 1024 * 1024
 EXPECT = {
     "slice": "ee1f1386743430ef2f1fcddcd29dc004b3716517dd1cfc72d95b3fa9287c9919",
-    "train.txt": "1df1a31eb15a0372f66539a373796cd3890ce4c9d456a9e070d38728e9333acb",
-    "val.txt": "95d81feaf209229d1dff5e97b14341b76a0e6df16b556b0b34b47d25c8c13739",
+    "train.txt": "c28be7b24679db8ecf4b8d3913963a96a1a8dd932edf4fb9e2cf8e84b17f4863",
+    "val.txt": "30d1a849bb745ea455413ab82c7d876f486f52bad69589d45d68143f9cd5cbb3",
 }
 SEP = "<|endoftext|>"
 OUT = os.path.join("data", "stories")
+
+
+def is_val(story):
+    """The split rule: 5 of 100 hash buckets go to validation. Whitespace is collapsed first, so two copies of a story
+    that differ only in spacing still share a bucket."""
+    key = " ".join(story.split())
+    return int(hashlib.sha256(key.encode("utf-8")).hexdigest(), 16) % 100 < 5
 
 
 def sha(b):
@@ -33,16 +44,17 @@ def main():
     text = raw.decode("utf-8", errors="ignore")
     stories = [s.strip() for s in text.split(SEP)]
     stories = [s for s in stories[:-1] if s]  # the last piece is cut off by the byte range
-    k = int(len(stories) * 0.95)
+    val = [s for s in stories if is_val(s)]
+    train = [s for s in stories if not is_val(s)]
     joiner = "\n" + SEP + "\n"
-    parts = {"train.txt": stories[:k], "val.txt": stories[k:]}
+    parts = {"train.txt": train, "val.txt": val}
     for name, part in parts.items():
         data = (joiner.join(part) + joiner).encode("utf-8")
         if sha(data) != EXPECT[name]:
             sys.exit(f"{name} hash mismatch: {sha(data)}")
         with open(os.path.join(OUT, name), "wb") as f:
             f.write(data)
-    print(f"stories: {len(stories)} (train {k}, val {len(stories) - k}); hashes match")
+    print(f"stories: {len(stories)} (train {len(train)}, val {len(val)}); hashes match")
 
 
 if __name__ == "__main__":

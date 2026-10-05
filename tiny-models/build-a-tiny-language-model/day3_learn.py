@@ -4,10 +4,10 @@
            fall below 1.0 within 100 steps (we measured 0.005 at step 100 on an M5 Air). If it can't memorise
            one batch, something in loss / backward / optimizer is broken. Exits 1 on failure.
 (default)  A short real run: 300 steps on random training windows, with the same recipe as Friday's full run
-           (AdamW lr 1e-3, betas 0.9/0.95, weight decay 0.1, gradient clip 1.0). The learning rate is the
-           measured recipe's: a linear ramp over the first 200 steps MULTIPLIED by a cosine that decays from step 1
-           to 10% at the last step, so it never quite reaches 1e-3 (see lr_at). Writes the whole schedule to
-           runs/lr_schedule.csv for plotting and prints a few points, then the loss every 25 steps.
+           (AdamW lr 1e-3, betas 0.9/0.95, weight decay 0.1, gradient clip 1.0). The learning rate warms up
+           linearly to 1e-3 over 200 steps, then decays along a cosine to 10% at the last step (schedule.py).
+           Writes the whole schedule to runs/lr_schedule.csv for plotting and prints a few points, then the loss
+           (and perplexity = exp(loss)) every 25 steps.
 --cpu-short  Smaller batches for machines without a GPU.
 
 Both modes stop on a non-finite loss (NaN or inf) and save what they have to runs/emergency.pt first, so a
@@ -21,17 +21,14 @@ import torch
 import torch.nn.functional as F
 
 import frozen
+import schedule
 from model import GPT, device
 
 V, SEQ, LR, WARMUP = 4096, 256, 1e-3, 200
 
 
 def lr_at(step, total):
-    """The measured recipe: a linear ramp min(1, step/WARMUP) times a cosine factor that starts decaying at step 1
-    and ends at 10% of LR. The two overlap, so the peak is below LR (about 3.9e-4 near step 100 of a 300-step run)."""
-    warm = min(1.0, step / WARMUP)
-    cosine = 0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * min(1.0, step / total)))
-    return LR * warm * cosine
+    return schedule.lr_at(step, total, LR, WARMUP)
 
 
 def autocast(dev):
@@ -101,7 +98,7 @@ def main():
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         if step == 1 or step % 25 == 0:
-            print(f"step {step:4d}  loss {loss.item():.3f}")
+            print(f"step {step:4d}  loss {loss.item():.3f}  perplexity {math.exp(loss.item()):,.1f}")
     print(f"done in {time.perf_counter() - t0:.1f}s")
     if a.overfit and loss.item() >= 1.0:
         sys.exit(f"FAIL: could not memorise one batch (loss {loss.item():.3f} after {steps} steps)")

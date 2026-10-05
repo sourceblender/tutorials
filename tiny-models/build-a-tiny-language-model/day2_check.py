@@ -40,6 +40,18 @@ def main():
     model = GPT(careful_init=not a.default_init)
     n = sum(p.numel() for p in model.parameters())
     print(f"2. parameters: {n:,}")
+    groups = {"token embedding": 0, "position embedding": 0, "attention (5 blocks)": 0, "MLP (5 blocks)": 0,
+              "LayerNorms": 0}
+    for name, p in model.named_parameters():  # the tied head shares tok.weight, so it is listed once
+        key = ("token embedding" if name.startswith("tok.") else "position embedding" if name.startswith("pos.")
+               else "attention (5 blocks)" if ".qkv." in name or ".proj." in name
+               else "MLP (5 blocks)" if ".mlp." in name else "LayerNorms")
+        groups[key] += p.numel()
+    for key, count in groups.items():
+        print(f"     {key:22s} {count:>10,}")
+    print(f"     {'output head (tied)':22s} {0:>10,}   (reuses the token embedding)")
+    if sum(groups.values()) != n:
+        fails.append("parameter breakdown does not sum to the total")
     if n != 5_051_904:
         fails.append(f"parameter count {n:,}, expected 5,051,904")
 

@@ -8,8 +8,10 @@ this machine:
   trained    the checkpoint you pass (default runs/main/final.pt)
 The scored target count is printed and checked to be identical for all three. A non-finite score or a checkpoint
 with non-finite weights fails.
-Pass bar for the full reference run: trained <= 4.11, at least 30% below unigram (the bar we set before our first
-run). --short marks a CPU short-path checkpoint: it reports the numbers but doesn't apply the reference bar.
+Pass rule for the full reference run, a tutorial smoke-quality criterion ("learned clearly more than which tokens
+are common"): trained cross-entropy at least 30% lower than unigram, i.e. trained <= 0.70 x unigram, both scored on
+the same targets in this same run. --short marks a CPU short-path checkpoint: it reports the numbers but doesn't
+apply the rule.
 Exits 1 if the reference bar fails.
 """
 import argparse, math, os, sys
@@ -21,7 +23,7 @@ import torch.nn.functional as F
 import frozen
 from model import GPT, device
 
-V, SEQ, BAR = 4096, 256, 4.11
+V, SEQ, RATIO = 4096, 256, 0.70
 
 
 def main():
@@ -72,15 +74,18 @@ def main():
     if not all(map(math.isfinite, (untrained, unigram, trained))):
         sys.exit(f"FAIL: non-finite score (untrained {untrained}, unigram {unigram}, trained {trained})")
     print(f"scored targets: {n_targets:,} (every validation token after the first, the same set for all three)")
-    print(f"untrained {untrained:.4f}   (uniform guessing: ln {V} = {math.log(V):.4f})")
-    print(f"unigram   {unigram:.4f}   (token-frequency guessing, no context)")
-    print(f"trained   {trained:.4f}   ({100 * (1 - trained / unigram):.0f}% lower cross-entropy than unigram)")
+    print(f"untrained {untrained:.4f}   perplexity {math.exp(untrained):7,.1f}   (uniform guessing: ln {V} = {math.log(V):.4f})")
+    print(f"unigram   {unigram:.4f}   perplexity {math.exp(unigram):7,.1f}   (token-frequency guessing, no context)")
+    print(f"trained   {trained:.4f}   perplexity {math.exp(trained):7,.1f}   "
+          f"({100 * (1 - trained / unigram):.0f}% lower cross-entropy than unigram)")
     if a.short:
         print("short path: numbers reported, reference bar not applied")
         return
-    if trained > BAR:
-        sys.exit(f"FAIL: trained {trained:.4f} is above the reference bar {BAR}")
-    print(f"reference bar {BAR}: pass")
+    bar = RATIO * unigram
+    print(f"rule: trained <= {RATIO:.2f} x unigram = {bar:.4f}")
+    if trained > bar:
+        sys.exit(f"FAIL: trained {trained:.4f} is above {bar:.4f}")
+    print("rule: pass")
 
 
 if __name__ == "__main__":
