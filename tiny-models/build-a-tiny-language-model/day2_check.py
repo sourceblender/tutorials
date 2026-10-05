@@ -5,7 +5,8 @@
 3. A forward pass on one tiny batch (B=1, T=16): logits (1, 16, 4096). Then the training shape (32, 256, 4096).
 4. Starting loss on 8 validation windows, near ln(4096) = 8.318: an untrained model should be nearly unsure.
 5. Causal mask, on its own full-length input: changing token 200 must not change any logit at positions 0-199.
-Runs on CPU so every machine gets the same numbers. Exits 1 if a check fails.
+Runs on CPU with fixed seeds to keep numbers close across machines (not guaranteed identical); each check has a
+tolerance, and that tolerance is the criterion. Exits 1 if a check fails.
 --default-init skips the careful initialisation, to show the bug it prevents.
 """
 import argparse, math, os, sys
