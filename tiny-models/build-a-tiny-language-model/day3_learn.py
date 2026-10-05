@@ -73,11 +73,14 @@ def main():
     else:
         steps, b = a.steps, (8 if a.cpu_short else 32)
         print(f"short run: {steps} steps, batch {b} x {SEQ} tokens on {dev}")
-        os.makedirs("runs", exist_ok=True)
-        with open(os.path.join("runs", "lr_schedule.csv"), "w") as f:
-            f.write("step,lr\n" + "".join(f"{s},{lr_at(s, steps):.8f}\n" for s in range(1, steps + 1)))
-        print("learning-rate schedule (all steps in runs/lr_schedule.csv):", "  ".join(f"step {s}: {lr_at(s, steps):.2e}"
-                                                   for s in (1, 50, 100, 200, steps // 2 + 100, steps)))
+        if not a.simulate_nan_at:  # a deliberate blow-up test must not replace the real run's schedule file
+            os.makedirs("runs", exist_ok=True)
+            with open(os.path.join("runs", "lr_schedule.csv"), "w") as f:
+                f.write("step,lr\n" + "".join(f"{s},{lr_at(s, steps):.8f}\n" for s in range(1, steps + 1)))
+        # start, halfway through warm-up, the peak, halfway through decay, the last step (only those inside this run)
+        points = sorted({p for p in (1, WARMUP // 2, WARMUP, (WARMUP + steps) // 2, steps) if 1 <= p <= steps})
+        where = "all steps in runs/lr_schedule.csv" if not a.simulate_nan_at else "file not written for a NaN test"
+        print(f"learning-rate schedule ({where}):", "  ".join(f"step {p}: {lr_at(p, steps):.2e}" for p in points))
     t0, loss = time.perf_counter(), None
     for step in range(1, steps + 1):
         if not a.overfit:
