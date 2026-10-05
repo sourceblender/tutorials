@@ -1,0 +1,9 @@
+__pycache__/
+.venv/
+runs/
+# rebuilt on Monday by day1_data.py / day1_tokenizer.py / day1_look.py from pinned sources; not redistributed
+data/stories/
+data/tok4096.json
+data/FROZEN.txt
+# the morpheme CLI the README's setup block downloads
+tools/
