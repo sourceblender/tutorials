@@ -21,7 +21,7 @@ def main():
         if res.returncode:
             print(res.stdout[-2000:], res.stderr[-2000:], sep="\n")
             sys.exit(f"preflight stopped at {' '.join(step)}; fix it before launching the full run")
-    print("preflight passes: launch with  uv run python train.py --out runs/main")
+    print("preflight passes: launch the full run with  uv run python train.py --out <a new run folder>")
 
 
 if __name__ == "__main__":
