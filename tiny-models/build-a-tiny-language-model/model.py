@@ -5,8 +5,8 @@ final LayerNorm, and an output head tied to the token embedding (one matrix both
 
 Initialisation: every Linear and Embedding weight starts at mean 0, std 0.02; LayerNorm keeps PyTorch's defaults.
 Pass careful_init=False to see why that matters (day2_check.py --default-init): with PyTorch's default inits
-(Embedding std 1) and the tied head, the starting loss on our validation windows measured 171.9 to 172.6 rather
-than about 8.4.
+(Embedding std 1) and the tied head, the starting loss on our validation windows measured about 171 to 173 (171.27
+on the current data) rather than about 8.4.
 """
 import torch
 import torch.nn as nn
