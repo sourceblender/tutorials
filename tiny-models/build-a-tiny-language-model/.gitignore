@@ -7,3 +7,5 @@ data/tok4096.json
 data/FROZEN.txt
 # the morpheme CLI the README's setup block downloads
 tools/
+# token-id caches train.py builds from the frozen splits
+data/*.npy
