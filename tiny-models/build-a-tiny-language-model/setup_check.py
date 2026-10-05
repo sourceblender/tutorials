@@ -3,6 +3,7 @@
 Reports the Python version, which PyTorch device the week will use (Apple GPU "mps", NVIDIA "cuda" or "cpu"),
 whether that device can train in bfloat16, and whether the morpheme CLI 0.5.0 is on PATH. Exits 1 if
 something required is missing, so you fix setup before Monday's data work rather than halfway through it.
+--no-cli skips the morpheme CLI check: only Monday's tokenizer training needs it.
 """
 import platform, shutil, subprocess, sys
 
@@ -31,6 +32,7 @@ def bf16_ok(dev):
 
 
 def main():
+    no_cli = "--no-cli" in sys.argv[1:]
     problems = []
     print(f"python   {platform.python_version()}")
     if sys.version_info < (3, 12):
@@ -40,7 +42,9 @@ def main():
     print(f"device   {dev}" + ("   (CPU: use the short-run flags all week)" if dev == "cpu" else ""))
     print(f"bf16     {'yes' if bf16_ok(dev) else 'no (training will use float32)'}")
     cli = shutil.which("morpheme")
-    if not cli:
+    if no_cli:
+        print("morpheme CLI check skipped (--no-cli)")
+    elif not cli:
         problems.append("morpheme CLI not on PATH (the Python package does not include it; see the README)")
         print("morpheme missing")
     else:

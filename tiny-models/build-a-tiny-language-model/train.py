@@ -13,7 +13,9 @@ What makes it reliable (Thursday):
   mid-write never leaves a half checkpoint.
 - --resume refuses to continue if the config or Monday's inputs changed.
 - A non-finite loss stops the run after an emergency save.
-- --stop-after N exits cleanly after step N, the way a closed laptop or a Ctrl-C would, so resuming can be tested.
+- --stop-after N saves a checkpoint and exits cleanly after step N: a cooperative stop for testing resume. An abrupt
+  interruption (Ctrl-C, a crash, a closed lid) has no handler here; it resumes from the latest periodic checkpoint
+  and loses the steps since it.
 
 Usage:
     uv run python train.py --out runs/main                # Friday's full run
@@ -77,6 +79,8 @@ def main():
     ap.add_argument("--device", choices=["auto", "cpu", "mps", "cuda"], default="auto")
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--resume-from", default="", help="resume from this file instead of OUT/checkpoint.pt "
+                    "(for example OUT/emergency.pt after a blow-up)")
     ap.add_argument("--stop-after", type=int, default=0, help="exit cleanly after this step (to test resuming)")
     ap.add_argument("--simulate-nan-at", type=int, default=0, help="force a non-finite loss at this step (shows the guard)")
     a = ap.parse_args()
@@ -97,10 +101,16 @@ def main():
     start = 1
     os.makedirs(a.out, exist_ok=True)
     ckpt_path, log_path = os.path.join(a.out, "checkpoint.pt"), os.path.join(a.out, "log.jsonl")
+    if a.resume_from:
+        a.resume = True
     if a.resume:
-        if not os.path.exists(ckpt_path):
-            sys.exit(f"--resume: no checkpoint at {ckpt_path}")
-        ck = torch.load(ckpt_path, map_location=dev, weights_only=False)
+        source = a.resume_from or ckpt_path
+        if not os.path.exists(source):
+            sys.exit(f"--resume: no checkpoint at {source}")
+        # Load on CPU: the sampler and RNG states must stay CPU ByteTensors (map_location=dev moved them onto the
+        # GPU and set_state refused them on MPS). load_state_dict copies weights and optimizer state to the model's
+        # device itself.
+        ck = torch.load(source, map_location="cpu", weights_only=False)
         if ck["config"] != config:
             sys.exit("--resume refused: this run's settings differ from the checkpoint's")
         if ck["inputs"] != inputs:
@@ -110,7 +120,7 @@ def main():
         gen.set_state(ck["gen"])
         torch.set_rng_state(ck["torch_rng"])
         start = ck["step"] + 1
-        print(f"resumed at step {start} from {ckpt_path}")
+        print(f"resumed at step {start} from {source}")
     elif os.path.exists(log_path):
         sys.exit(f"{a.out} already has a run; use --resume or a new --out")
 
@@ -133,9 +143,14 @@ def main():
         model.train()
         return total / (len(val_starts) / 16)
 
-    def state(step):
-        return {"model": model.state_dict(), "opt": opt.state_dict(), "step": step, "gen": gen.get_state(),
-                "torch_rng": torch.get_rng_state(), "config": config, "inputs": inputs}
+    def state(step, gen_state=None, rng_state=None):
+        """Everything a resume needs after `step` completed updates. gen_state/rng_state default to the current
+        ones; the emergency save passes the states from BEFORE the failed step drew its batch, so a resume
+        retries that same batch instead of skipping it."""
+        return {"model": model.state_dict(), "opt": opt.state_dict(), "step": step,
+                "gen": gen.get_state() if gen_state is None else gen_state,
+                "torch_rng": torch.get_rng_state() if rng_state is None else rng_state,
+                "config": config, "inputs": inputs}
 
     def log(**row):
         with open(log_path, "a") as f:
@@ -148,6 +163,7 @@ def main():
     for step in range(start, a.steps + 1):
         for g in opt.param_groups:
             g["lr"] = lr_at(step, a.steps, config["lr"], config["warmup"])
+        gen_before, rng_before = gen.get_state(), torch.get_rng_state()
         starts = torch.randint(0, len(train) - SEQ - 1, (a.batch,), generator=gen).tolist()
         x, y = windows(train, starts)
         with run_amp():
@@ -156,7 +172,7 @@ def main():
         if step == a.simulate_nan_at:
             loss = loss * float("nan")  # a stand-in for a real blow-up, so the guard below can be seen working
         if not torch.isfinite(loss):
-            save(os.path.join(a.out, "emergency.pt"), state(step - 1))
+            save(os.path.join(a.out, "emergency.pt"), state(step - 1, gen_before, rng_before))
             sys.exit(f"step {step}: loss is {loss.item()}; saved emergency.pt and stopped")
         opt.zero_grad(set_to_none=True)
         loss.backward()
