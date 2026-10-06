@@ -151,9 +151,20 @@ struggled near the peak and finished around 4.7, worse than the recipe’s
 wrote a different opening. GPU runs can vary at this larger rate. Bigger
 steps changed the learning, but not in the way we wanted.
 
-We also tried 0.01 and got 2.933 on this short run. The supplied 0.001 is a
-recipe we have not tuned. We haven’t tested whether the larger rate also
-helps the full 6,000-update run.
+We also tried 0.01 and got 2.933 on this short run. Then we tried the full
+6,000 updates at that rate: whole-validation loss was 1.7586, compared with
+1.7770 for the recipe’s 0.001. A small improvement in this comparison. One
+full run at 0.01 gives us a result to explore, rather than a best-rate trophy.
+
+Want to try it on Day 5? Give the experiment its own folder, then compare
+its scoreboard with your first run:
+
+```bash
+uv run python train.py --lr 0.01 --out runs/friday-lr001
+uv run python day5_scoreboard.py --checkpoint runs/friday-lr001/final.pt
+```
+
+Keep the other settings the same so you can see what changing the rate did.
 
 ![Training loss over 300 Air GPU updates with three peak learning rates. The default 0.001 ends at 3.372, 0.1 at 4.681 and 0.01 at 2.933.](https://raw.githubusercontent.com/sourceblender/tutorials/main/tiny-models/build-a-tiny-language-model/assets/day3-learning-rates.png)
 
