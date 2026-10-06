@@ -1,0 +1,14 @@
+training on mps: steps 1-6000, batch 32 x 256
+step   500  train 2.807  val 2.810  59,376 tok/s
+step  1000  train 2.434  val 2.476  52,900 tok/s
+step  1500  train 2.150  val 2.314  50,521 tok/s
+step  2000  train 2.064  val 2.213  49,899 tok/s
+step  2500  train 2.141  val 2.123  49,102 tok/s
+step  3000  train 2.024  val 2.057  48,539 tok/s
+step  3500  train 1.935  val 1.991  48,905 tok/s
+step  4000  train 1.808  val 1.937  49,112 tok/s
+step  4500  train 1.835  val 1.870  49,381 tok/s
+step  5000  train 1.616  val 1.813  49,580 tok/s
+step  5500  train 1.695  val 1.789  49,759 tok/s
+step  6000  train 1.587  val 1.763  49,703 tok/s
+done: runs/lr0.01-full/final.pt

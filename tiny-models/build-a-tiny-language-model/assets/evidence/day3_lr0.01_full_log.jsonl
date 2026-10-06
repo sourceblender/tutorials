@@ -1,0 +1,14 @@
+{"event": "start", "device": "mps", "config": {"steps": 6000, "batch": 32, "seq": 256, "lr": 0.01, "warmup": 200, "schedule": "linear-warmup-cosine-v2", "eval_every": 500, "seed": 1234, "model": {"vocab": 4096, "seq": 256, "d": 256, "layers": 5, "heads": 4}}, "inputs": {"train.txt": "c28be7b24679db8ecf4b8d3913963a96a1a8dd932edf4fb9e2cf8e84b17f4863", "val.txt": "30d1a849bb745ea455413ab82c7d876f486f52bad69589d45d68143f9cd5cbb3", "tok4096.json": "c9ced905c3aba62a08acf63e67575f962fb87465407d18ea2da10090639fa1b9"}, "val_ce": 8.3794}
+{"event": "eval", "step": 500, "lr": 0.00994072, "train_loss": 2.8067, "val_ce": 2.81, "tokens_per_s": 59376, "starts_sha": "a1924b93f666"}
+{"event": "eval", "step": 1000, "lr": 0.00958409, "train_loss": 2.4345, "val_ce": 2.4765, "tokens_per_s": 52900, "starts_sha": "50b482411d4f"}
+{"event": "eval", "step": 1500, "lr": 0.00892973, "train_loss": 2.1498, "val_ce": 2.314, "tokens_per_s": 50521, "starts_sha": "a8ff2774d4f0"}
+{"event": "eval", "step": 2000, "lr": 0.00802534, "train_loss": 2.0644, "val_ce": 2.2126, "tokens_per_s": 49899, "starts_sha": "692c0f458b1a"}
+{"event": "eval", "step": 2500, "lr": 0.00693686, "train_loss": 2.1408, "val_ce": 2.1225, "tokens_per_s": 49102, "starts_sha": "f2cbe0ff1a65"}
+{"event": "eval", "step": 3000, "lr": 0.00574363, "train_loss": 2.0237, "val_ce": 2.0567, "tokens_per_s": 48539, "starts_sha": "712291d5ebf3"}
+{"event": "eval", "step": 3500, "lr": 0.00453263, "train_loss": 1.9352, "val_ce": 1.9912, "tokens_per_s": 48905, "starts_sha": "b6b409623a4a"}
+{"event": "eval", "step": 4000, "lr": 0.00339216, "train_loss": 1.8081, "val_ce": 1.9367, "tokens_per_s": 49112, "starts_sha": "99358a54db96"}
+{"event": "eval", "step": 4500, "lr": 0.00240535, "train_loss": 1.835, "val_ce": 1.8699, "tokens_per_s": 49381, "starts_sha": "517aba20819d"}
+{"event": "eval", "step": 5000, "lr": 0.00164414, "train_loss": 1.6159, "val_ce": 1.8132, "tokens_per_s": 49580, "starts_sha": "63b837b8b40f"}
+{"event": "eval", "step": 5500, "lr": 0.00116403, "train_loss": 1.6949, "val_ce": 1.7889, "tokens_per_s": 49759, "starts_sha": "6a7809666157"}
+{"event": "eval", "step": 6000, "lr": 0.001, "train_loss": 1.587, "val_ce": 1.7626, "tokens_per_s": 49703, "starts_sha": "2764aa02847e"}
+{"event": "final", "step": 6000, "minutes": 16.48}

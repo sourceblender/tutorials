@@ -75,6 +75,7 @@ def main():
     ap.add_argument("--eval-every", type=int, default=500)
     ap.add_argument("--device", choices=["auto", "cpu", "mps", "cuda"], default="auto")
     ap.add_argument("--seed", type=int, default=1234)
+    ap.add_argument("--lr", type=float, default=1e-3, help="peak learning rate (the recipe uses 1e-3)")
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--resume-from", default="", help="resume from this file instead of OUT/checkpoint.pt "
                     "(for example OUT/emergency.pt after a blow-up)")
@@ -84,7 +85,7 @@ def main():
     if a.cpu_short:
         a.batch, a.steps = 8, min(a.steps, 1000)
     dev = device() if a.device == "auto" else a.device
-    config = {"steps": a.steps, "batch": a.batch, "seq": SEQ, "lr": 1e-3, "warmup": 200, "schedule": schedule.SCHEDULE_ID,
+    config = {"steps": a.steps, "batch": a.batch, "seq": SEQ, "lr": a.lr, "warmup": 200, "schedule": schedule.SCHEDULE_ID,
               "eval_every": a.eval_every,
               "seed": a.seed, "model": {"vocab": V, "seq": SEQ, "d": 256, "layers": 5, "heads": 4}}
     fz = frozen.check()

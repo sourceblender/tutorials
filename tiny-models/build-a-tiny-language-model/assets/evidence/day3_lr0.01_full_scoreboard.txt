@@ -1,0 +1,6 @@
+scored targets: 529,455 (every validation token after the first, the same set for all three)
+untrained 8.3802   perplexity 4,360.0   (uniform guessing: ln 4096 = 8.3178)
+unigram   5.8673   perplexity   353.3   (token-frequency guessing, no context)
+trained   1.7586   perplexity     5.8   (70% lower cross-entropy than unigram)
+rule: trained <= 0.70 x unigram = 4.1071
+rule: pass
