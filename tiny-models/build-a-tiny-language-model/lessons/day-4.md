@@ -11,6 +11,8 @@ Our full run takes minutes. Larger runs take hours or days, laptops sleep,
 and sometimes someone else needs the GPU. A working save means you can stop
 without sending the experiment back to the beginning.
 
+> **Today’s question:** Can we stop and continue the same experiment?
+
 > **Time:** allow 20–30 minutes to read and explore, plus the stop/resume checks.
 > **You need:** the model and learning code, plus Day 1’s frozen inputs.
 > **You’ll have:** a saved experiment that continues the same sequence of training windows.
@@ -112,8 +114,9 @@ NaN or infinity, the failure we planted in Day 3.
 
 At each compared evaluation, the selected training windows must match
 exactly. The losses must be close. On our CPU they matched to four decimal
-places. The GPU check allows a little more numerical drift while still
-requiring the same windows.
+places. Parallel GPU calculations can add numbers in different orders,
+changing the rounding slightly. The GPU check allows a little more numerical
+drift while still requiring the same windows.
 
 ![CPU training timelines for 120 updates: uninterrupted and stopped at update 50 then resumed. At each of 12 evaluations, the sampled-window hashes and logged losses match.](https://raw.githubusercontent.com/sourceblender/tutorials/main/tiny-models/build-a-tiny-language-model/assets/day4-resume-timeline.png)
 

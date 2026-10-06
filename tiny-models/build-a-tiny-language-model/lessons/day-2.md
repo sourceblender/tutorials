@@ -60,10 +60,10 @@ That gives one score per pair. The value is what gets mixed into the answer;
 it is not one of the two lists being compared.
 
 Our four heads each work with a 64-number slice of the token’s 256 numbers.
-A head compares lists of 64 numbers. We divide the score by `sqrt(64)` to keep
-its scale manageable. **Softmax** turns the scores into positive weights that
-sum to one. Very large score gaps would make that mixture nearly all-or-nothing;
-scaling helps keep it useful for learning. A fourth learned table mixes the
+A head compares lists of 64 numbers. **Softmax** turns the scores into positive
+weights that sum to one. Very large score gaps would make that mixture nearly
+all-or-nothing. To keep the mixture useful for learning, we divide the scores
+by `sqrt(64)` before softmax. A fourth learned table mixes the
 heads’ results back together. Different learned slices let heads develop
 different habits.
 

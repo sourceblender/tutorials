@@ -7,6 +7,8 @@ Now we wake the tiny thing up and let it tell stories. Today you’ll train the
 final gremlin, load its saved weights in a fresh process and read what it
 wrote. The payoff is a page of stories from the model you trained.
 
+> **Today’s question:** Did it learn more than which tokens are common?
+
 > **Time:** allow 20–30 minutes to read and explore, plus training. Our full Air run took about 12 minutes; your machine’s time will vary.
 > **You need:** the code and checks from Days 1–4, plus Day 1’s frozen inputs.
 > **You’ll have:** a trained checkpoint, five stories and a score against a simple baseline.
@@ -197,7 +199,7 @@ Lily’s hat becomes a coat mid-explanation. The dog story is a readable short
 scene. Tom opens a box under the bed and finds a cake on a table; the scene
 does not maintain its spatial setup. Sue’s story repeats “colors” and ends
 mid-action. Lily, Tom and Sue all reach the 120-new-token budget; the other
-two stop at the end-of-text token. Those are token-budget stops, rather than conclusions the model chose.
+two stop at the end-of-text token.
 
 Training rewarded guessing the next token. Nothing told it to keep names,
 plots or rooms straight. The
@@ -258,7 +260,7 @@ The caffeinated duck borrowed a spaceship.
 The duck was so happy and he thanked the curledge. The curled up in the sunshine and smiled.
 ```
 
-At 1.3, this passage appeared:
+At 1.3, the story has wandered away from the duck by this passage:
 
 ```text
 Jonny wanted to join them, but he was so clumsy, he shouted out of the hole as he pushed. In it came lots of crazy spinning in shorgzen their games they played a great job together. They were all having lots of fun, but soon the resuccessorted their friendship.

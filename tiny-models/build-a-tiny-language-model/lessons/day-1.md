@@ -15,11 +15,13 @@ parties and occasionally very confused cakes. We’ll meet its mistakes too.
 Today, dragons and spaghetti become integers. You’ll train a tokenizer,
 the part that turns text into numbered pieces called tokens.
 
+> **Today’s question:** What does a model see when it reads?
+
 > **Time:** allow 20–30 minutes to read and explore; setup and downloads vary.
 > **You’ll have:** text files, a trained tokenizer and a sentence you can turn into IDs and back.
 > **You need:** basic Python, Git and a terminal.
 
-You need basic Python and terminal experience. We will supply the model code
+We will supply the model code
 and explain it as we go; you do not need to know calculus to start. The reference
 machine is an Apple-silicon Mac. We tested on the M5 Air and on Ubuntu Linux
 x86_64 using its CPU. Linux installs CPU-only PyTorch to keep setup simple.
@@ -56,7 +58,8 @@ we built so the training and encoding internals are available alongside the
 exercise. There is one separate installation: the Python package encodes text,
 but does not supply the command-line executable we use to train the tokenizer.
 Install the pinned release with the same command on Apple silicon or Linux
-x86_64. The installer chooses the build and checks the downloaded binary:
+x86_64. This is the standard cargo-dist installer; it chooses the build and
+verifies the binary it downloads:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/sourceblender/morpheme/releases/download/v0.5.0/morpheme-cli-installer.sh | sh
@@ -187,8 +190,6 @@ The script prints pieces and IDs for three sentences. One is:
 ```text
 The dragon's spaghetti was unbelievably wobbly!
 ```
-
-
 
 The inspection also encodes and decodes 100 validation stories, checks that
 they return unchanged and counts tokens in both files:
