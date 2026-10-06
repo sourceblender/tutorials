@@ -1,24 +1,32 @@
 
-# Monday: Give your model something to read
+# Day 1: Give your model something to read
 
 **Day 1** · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
 
-> **Today’s question:** Can we turn a fixed corpus into reproducible token IDs?
+> **Today’s question:** Can the same stories become the same numbered pieces of text?
+
+> **Plan:** about an hour, plus environment setup.
+> **Bring:** basic Python, Git and a terminal.
+> **Finish with:** frozen data, a trained tokenizer and reproducible token IDs.
 
 This week you will build a small language model that writes short stories.
 Today dragons and spaghetti become integers. You will prepare its reading material and train its tokenizer: the part
-that turns text into integer IDs. By the end, you should have frozen training
+that turns text into numbered pieces called tokens. By the end, you should have frozen training
 and validation files, a tokenizer and a sentence you can encode and decode.
 
 You need basic Python and terminal experience. We will supply the model code
 and explain it as we go; you do not need to know calculus to start. The reference
-machine is an Apple-silicon Mac. This new companion folder has been exercised
-on an M5 Air, including its CPU training and generation path. Linux and Windows
-have not yet been checked, nor has a separate CPU-only machine.
+machine is an Apple-silicon Mac. This companion folder has been exercised
+on an M5 Air, including its CPU training and generation path, and on
+Ubuntu 26.04.1 x86_64 through the CPU short path. Linux installs CPU-only
+PyTorch to keep setup simple. Windows is outside the tested path for this edition.
 
-The week’s path is short: Monday turns text into tokens; Tuesday turns tokens
-into logits; Wednesday makes the weights learn; Thursday makes the experiment
-resumable; Friday turns a checkpoint into stories.
+The time boxes are planning suggestions: leave room to explore, and take
+a break when you need one. The scripts’ measured run times appear beside
+the exercises.
+
+The week’s path is short: prepare the reading material, assemble a model,
+watch it learn, save its progress, then read the stories it writes.
 
 ## Prepare the environment
 
@@ -38,7 +46,10 @@ The folder pins Python 3.12 and the package versions used by the recipe. Keep
 the lockfile: updating dependencies halfway through the week changes the
 experiment you are following.
 
-There is one separate installation. The Python morpheme package encodes text,
+[morpheme](https://github.com/sourceblender/morpheme) is our open-source Rust
+subword tokenizer, compatible with Hugging Face tokenizers. We use the project
+we built so the training and encoding internals are available alongside the
+exercise. There is one separate installation: the Python package encodes text,
 but does not supply the command-line executable we use to train the tokenizer.
 For Apple Silicon, install the checksum-checked 0.5.0 release inside this folder:
 
@@ -54,10 +65,24 @@ export PATH="$PWD/tools/morpheme/morpheme-cli-aarch64-apple-darwin:$PATH"
 morpheme --version
 ```
 
+For Linux x86_64, use this block instead of the Apple-silicon block:
+
+```bash
+mkdir -p tools/morpheme
+cd tools/morpheme
+curl --fail --location --silent --show-error https://github.com/sourceblender/morpheme/releases/download/v0.5.0/morpheme-cli-x86_64-unknown-linux-gnu.tar.xz --output morpheme-cli-x86_64-unknown-linux-gnu.tar.xz
+curl --fail --location --silent --show-error https://github.com/sourceblender/morpheme/releases/download/v0.5.0/morpheme-cli-x86_64-unknown-linux-gnu.tar.xz.sha256 --output morpheme-cli-x86_64-unknown-linux-gnu.tar.xz.sha256
+sha256sum -c morpheme-cli-x86_64-unknown-linux-gnu.tar.xz.sha256
+tar -xf morpheme-cli-x86_64-unknown-linux-gnu.tar.xz
+cd ../..
+export PATH="$PWD/tools/morpheme/morpheme-cli-x86_64-unknown-linux-gnu:$PATH"
+morpheme --version
+```
+
 Stop if the checksum check fails. The last command should print
 `morpheme 0.5.0`. The PATH change lasts for the current shell; if you open a new
-terminal, set it again before continuing. Other platforms require their own
-release binary; the Apple archive cannot run on them.
+terminal, set it again before continuing. Choose the block for your platform;
+the two archives contain different executables.
 
 Now check the environment before doing any data work:
 
@@ -72,9 +97,15 @@ failed. If the script prints `PROBLEM`, fix that item before proceeding.
 
 ## Download a small, fixed corpus
 
+Our source is [TinyStories, by Ronen Eldan and Yuanzhi Li (2023)](https://arxiv.org/abs/2305.07759):
+synthetic short stories designed around vocabulary understood by young children.
+That constrained language makes a tiny model’s learning visible within a small
+training budget. The [dataset card](https://huggingface.co/datasets/roneneldan/TinyStories)
+lists its license as CDLA-Sharing-1.0.
+
 We use a pinned 40 MiB slice of `TinyStoriesV2-GPT4-train.txt`. Our validation
-set is held out from that slice; it is not TinyStories’ published validation set. A small supplied corpus keeps
-today focused on the pipeline. The data is downloaded from its source rather
+set is held out from that slice, separately from TinyStories’ published
+validation set. A small corpus keeps today focused on the pipeline. The data is downloaded from its source rather
 than bundled with the tutorial.
 
 ```bash
@@ -84,15 +115,13 @@ uv run python day1_data.py
 The script requests the pinned byte range, checks its hash and separates stories
 at `<|endoftext|>`. It strips surrounding whitespace and drops the last piece,
 which was cut off by the download boundary. It collapses whitespace in each
-story to make an assignment key, hashes that key with SHA256 and uses the
-integer hash modulo 100 as a bucket. Buckets 0–4 go to validation; the others
-go to training. Identical normalized stories always share a side.
+story to make an assignment key, then hashes that key with SHA256. Dividing
+that hash by 100 gives a remainder from 0 to 99: our bucket number. Buckets
+0–4 go to validation; the others go to training. Identical normalized stories always share a side.
 
 This assignment does not depend on where a story appeared in the source file.
 Within each split, stories keep their original order and stripped text; the
-normalized key is only for assignment. Five percent is the target proportion,
-not an exact quota: this slice gives 48,620 training and 2,567 validation stories.
-This is our custom held-out split, not a benchmark of every possible story.
+normalized key is only for assignment. We aim for about five percent in validation; this slice gives 48,620 training and 2,567 validation stories.
 
 Expected output:
 
@@ -110,16 +139,18 @@ trained tokenizer; encoding text does not fit a new vocabulary.
 
 ## Why bytes, and why 4,096 tokens?
 
-Byte-level BPE starts with a representation of input bytes, then learns merges
-for frequent sequences. A rare spelling can fall back to smaller pieces instead
+Computers store text as bytes. Byte-pair encoding (BPE) begins with small
+pieces and repeatedly joins pairs that appear together often. Our byte-level
+version starts from bytes. A rare spelling can fall back to smaller pieces instead
 of needing its own vocabulary entry. Round-trip inspection lets you see whether
 the complete encoding and decoding pipeline preserves the text you supplied.
 
 Vocabulary size is a budget choice. More entries can shorten common sequences,
-but enlarge the embedding matrix and the scores computed for every next-token
-guess. At width 256, a 4,096-entry token matrix has 1,048,576 parameters. We
-share it with the output head. This is a manageable teaching budget, not a claim
-that 4,096 is best for every corpus.
+but need a larger lookup table to turn each token into numbers the model can
+work with. At width 256, a 4,096-entry table contains 1,048,576 learned numbers,
+or parameters. The model also reuses that table when scoring its next-token
+guesses; Day 2 shows how. That leaves room in our five-million-parameter
+budget for the layers that learn context.
 
 ## Train the tokenizer
 
@@ -142,10 +173,13 @@ tokenizer matches the tutorial's tok4096.json
 ```
 
 If it reports a mismatch, check the CLI version and the preceding data step.
-Do not replace the expected hash with the new one merely to continue. Later
-results depend on the token IDs produced by this particular tokenizer.
+Keep the expected hash while finding the cause. That hash connects your
+tokenizer to the later results; changing it would hide the mismatch.
 
 ## Look at the pieces
+
+Before running the inspection, predict how many pieces “unbelievably” will
+become. The tokenizer will have the last word.
 
 ```bash
 uv run python day1_look.py
@@ -161,7 +195,7 @@ In this tokenizer, `spaghetti` is one piece, while `unbelievably` becomes seven:
 `un`, `b`, `el`, `ie`, `v`, `ab`, `ly`. The printed `Ġ` marker represents a
 leading space in the byte-level token display; it is not an extra character
 inserted into the decoded sentence. Pieces reflect this corpus and vocabulary,
-not a rule that long words must split and short words must stay whole.
+so word length alone will not tell you how many pieces to expect.
 
 The inspection also encodes and decodes 100 validation stories, checks that
 they return unchanged and counts tokens in both files. On the checked inputs:
@@ -173,7 +207,7 @@ tokens: train 9,975,703  val 529,456   (1.27 tokens per word on validation)
 
 Here, “word” means a whitespace-separated item in the serialized validation
 file, including its story separators. The 1.27 ratio describes this file and
-this tokenizer; it is not an estimate for all English text.
+this tokenizer.
 
 ## One sentence that is yours
 
@@ -194,11 +228,15 @@ PYCODE
 Change the sentence and look at the pieces. The tokenizer is not judging the
 duck’s life choices; it is deciding how to spell them in its vocabulary.
 
+![The caffeinated-duck sentence split into 13 colored byte-level BPE pieces, with the token ID below each piece. A leading-space symbol marks whitespace.](https://raw.githubusercontent.com/sourceblender/tutorials/main/tiny-models/build-a-tiny-language-model/assets/day1-token-pieces.png)
+
+The same sentence becomes 13 IDs with our frozen tokenizer. Spaces are part of its representation, not separators added after tokenization.
+
 ## Freeze today's outputs
 
-The final step records the three file hashes and the train/validation
+The `day1_look.py` command you just ran records the three file hashes and the train/validation
 token counts in `data/FROZEN.txt`. That is the identity of today's inputs for
-the later lessons. Tomorrow you will turn their IDs into a model's guesses.
+the later lessons. In Day 2 you will turn their IDs into a model's guesses.
 
 The script verifies the pinned input hashes first, requires at least 100
 validation stories and tests those 100 round trips. Only after successful
@@ -206,9 +244,15 @@ checks does it replace the manifest. If an input changed or a check fails,
 the script exits without replacing an existing valid manifest. Rerun the
 data and tokenizer steps to recover the supplied inputs.
 
-Timing note: we observed data preparation at 3.08 s, tokenizer training at
-1.31 s and inspection at 10.97 s on the M5 Air. These are warm-machine observations,
-not installation or reader completion times. A cold install remains unmeasured.
+On our warmed-up M5 Air, data preparation took 3.08 seconds, tokenizer
+training 1.31 seconds and inspection 10.97 seconds. Reading the outputs and
+trying your own sentences is where you will spend most of this lesson.
+
+## If you get stuck
+
+- **Checksum mismatch:** stop and re-download the pinned artifact. Keep the expected hash unchanged.
+- **morpheme missing:** return to the project folder and repeat the PATH export for your platform. The Python package and CLI are separate installs.
+- **bf16 no:** the selected device uses float32. You can still continue with the CPU path.
 
 > **What this proves:** the pinned slice rebuilds into the specified files, and
 > the trained tokenizer round-trips the checked stories.

@@ -1,18 +1,24 @@
 
-# Tuesday: Turn token IDs into guesses
+# Day 2: Turn token IDs into guesses
 
 [Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · **Day 2** · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
 
 > **Today’s question:** Can our model predict without cheating?
 
-Yesterday you made a tokenizer. Today you will assemble and understand a model that accepts its
+> **Plan:** about an hour.
+> **Bring:** Day 1’s FROZEN.txt, text files and tokenizer.
+> **Finish with:** a 5,051,904-parameter model that passes forward, initialization and causal checks.
+
+In Day 1 you made a tokenizer. Today you will assemble and understand a model that accepts its
 IDs and returns scores for the next token. It will not know how to write yet.
 Our finish line is a working forward pass with the right shape, a reasonable
-starting loss and attention that cannot read the future.
+starting loss and attention that cannot read the future. Loss is a number
+that measures how wrong the model’s next-token guesses are; smaller is better.
 
 By the end, you own five million parameters of carefully initialized ignorance.
 
-Run today's commands from the same companion folder as Monday.
+Run today’s commands from the same project folder as Day 1. The Python
+package is already installed by uv; today needs no extra CLI setup.
 
 ## Start with the question the model will answer
 
@@ -37,7 +43,8 @@ uv run python day2_attention.py
 ```
 
 The script makes four tiny query, key and value vectors. A query describes what
-a position is looking for; a key describes information a position offers. Their
+a position is looking for; a key describes information a position offers;
+a value holds the information it can pass along. Their
 dot product gives a score. Dividing by the square root of the head dimension
 controls its scale. Our model divides width 256 across four heads, so each head
 has dimension 64 and uses a scale of 1 / sqrt(64). Softmax turns a row of scores into weights, and multiplying
@@ -56,8 +63,13 @@ by hand == PyTorch: True
 ```
 
 The zeros above the diagonal are the important pattern. The rows sum to one
-before display rounding. The last line compares the manual calculation with
-PyTorch's attention function using a numerical tolerance, not exact equality.
+before display rounding. The last line checks that our calculation agrees with PyTorch’s attention
+function within a small numerical tolerance. Two ways to do the same job.
+The future is still off-limits.
+
+![A four-by-four attention heatmap. Every cell above the diagonal is zero; each row reads only its own position and earlier positions.](https://raw.githubusercontent.com/sourceblender/tutorials/main/tiny-models/build-a-tiny-language-model/assets/day2-causal-attention.png)
+
+This is the small seed-0 example printed by the script, rounded to two decimals.
 
 Before running the next check, predict the answer: if token 200 changes,
 which earlier positions are allowed to change? Write your prediction down.
@@ -70,18 +82,25 @@ from an empty file:
 
 1. Token embeddings turn IDs into 256-number vectors. Learned position
    embeddings add where each token sits in the sequence.
-2. Each block applies LayerNorm and computes four attention heads. Their
+2. Each block uses LayerNorm to keep the scale of its numbers manageable,
+   then computes four attention heads, four ways to look at the context. Their
    outputs are projected back to the model width and added to the residual
    stream, the representation that runs through the blocks.
-3. A second LayerNorm feeds an MLP that expands the width fourfold, applies
-   GELU and projects back. Its output is also added to the residual stream.
+3. A second LayerNorm feeds an MLP, a small feed-forward network. It expands
+   the width fourfold, applies a curved function called GELU so the network
+   can learn more than straight-line transformations, and projects back.
+   Its output is also added to the residual stream.
 4. Five blocks are followed by a final LayerNorm and a vocabulary projection.
    The projection shares the token embedding's weight matrix. We count that
    shared matrix once when counting parameters.
 
 These final vocabulary scores are called logits. They are not probabilities
-until a softmax converts them. Tomorrow cross-entropy will use them to measure
+until a softmax converts them. In Day 3, cross-entropy will use them to measure
 how much probability the model gives the true next token.
+
+![For one sequence, token IDs flow through token plus position embeddings, five residual attention-and-MLP blocks, a final LayerNorm, and 4096 vocabulary logits per position. The output weights are tied to token embeddings.](https://raw.githubusercontent.com/sourceblender/tutorials/main/tiny-models/build-a-tiny-language-model/assets/day2-model-path.png)
+
+One sequence follows this path. The diagram suppresses the batch dimension after the input; the script retains it, so its output shape is batch × time × vocabulary.
 
 ## Where do five million parameters go?
 
@@ -99,7 +118,10 @@ the budget is:
 | **Total** | | **5,051,904** |
 
 The MLPs hold more than half the weights. Attention is the memorable mechanism,
-but it does not own the entire parameter budget.
+while the MLPs account for over half the parameters.
+
+We’ll call this small model the gremlin: five million parameters, all of them
+still guessing. Training comes next.
 
 ## Check the forward pass
 
@@ -115,7 +137,7 @@ checked output includes:
 3. tiny batch logits: (1, 16, 4096)   training batches will be (32, 256, 4096)
 4. starting loss: 8.3857   (uniform guessing would be ln(4096) = 8.3178)
 5. causal mask: positions 0-199 unchanged = True; positions 200+ changed = True
-Tuesday checks pass
+Day 2 checks pass
 ```
 
 The tiny forward pass has one sequence, 16 positions and 4,096 vocabulary
@@ -125,8 +147,8 @@ shape check does not allocate that training batch.
 The loss check uses eight 256-token validation windows. A model that gives
 every token equal probability has loss ln(4096). Random initialization is not
 perfectly uniform, so the diagnostic accepts a difference below 0.5 rather
-than requiring the printed 8.3857 exactly. That number is this diagnostic's
-CPU observation; the earlier whole-validation baseline used a different sample.
+than requiring the printed 8.3857 exactly. We got 8.3857 on CPU. Day 5 will evaluate the untrained model over the whole
+validation file and report a slightly different value.
 
 The causal check uses its own full-length input. It changes token 200 and
 requires earlier logits to stay unchanged while later logits change. If
@@ -160,12 +182,18 @@ right shape; shape alone did not catch the problem. Rerun without the flag to
 return to the supplied initialization. You have not saved or trained bad
 weights by running this diagnostic.
 
-At today's finish, you have a model that asks the right question and obeys the
-time boundary. Tomorrow you will change its weights so its guesses improve.
+The gremlin can now make guesses without peeking at the answer. In Day 3
+you will change its weights so those guesses improve.
+
+## If you get stuck
+
+- **Starting loss near 171:** check whether you kept the deliberate --default-init flag. Remove it and rerun the normal check.
+- **Frozen-input refusal:** return to Day 1 and rebuild the affected artifact before inspecting the model.
+- **Causal check fails:** check the attention call’s causal mask. Fix that boundary before training.
 
 > **What this proves:** the supplied model produces the intended shape, starts
 > at a sensible loss and passes the tested causal boundary.
 > **What it doesn’t prove:** that it has learned anything. Today’s weights are
-> still random; learning begins tomorrow.
+> still random; learning begins in Day 3.
 
 [Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · **Day 2** · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
