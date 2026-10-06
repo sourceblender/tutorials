@@ -1,0 +1,255 @@
+{
+ "day1": {
+  "sentence": "A caffeinated duck borrowed my spaceship.",
+  "pieces": [
+   "A",
+   "\u0120c",
+   "affe",
+   "in",
+   "ated",
+   "\u0120duck",
+   "\u0120borrow",
+   "ed",
+   "\u0120my",
+   "\u0120space",
+   "sh",
+   "ip",
+   "."
+  ],
+  "ids": [
+   33,
+   278,
+   3957,
+   270,
+   1737,
+   1208,
+   3107,
+   264,
+   632,
+   2663,
+   1372,
+   953,
+   14
+  ]
+ },
+ "day2_attention": [
+  [
+   1.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  [
+   0.492945,
+   0.507055,
+   0.0,
+   0.0
+  ],
+  [
+   0.622141,
+   0.03175,
+   0.346109,
+   0.0
+  ],
+  [
+   0.203221,
+   0.623467,
+   0.102497,
+   0.070815
+  ]
+ ],
+ "day3": {
+  "loss_source": "day3_loss.csv (every update)",
+  "updates": 300,
+  "final_loss": 3.3718,
+  "rises": 110,
+  "biggest_rise": [
+   0.2191,
+   297
+  ],
+  "lr_source": "lr_schedule.csv (all 300 steps)"
+ },
+ "day3_lr": {
+  "0.1": {
+   "source": "day3_loss_lr0.1.csv",
+   "update_25": 5.8401,
+   "update_200": 5.1568,
+   "final": 4.6814
+  },
+  "0.001 (the recipe)": {
+   "source": "day3_loss.csv",
+   "update_25": 7.4422,
+   "update_200": 3.731,
+   "final": 3.3718
+  },
+  "0.01": {
+   "source": "day3_loss_lr0.01.csv",
+   "update_25": 5.6515,
+   "update_200": 3.4739,
+   "final": 2.9327
+  }
+ },
+ "day4": [
+  {
+   "update": 10,
+   "A_windows": "9f04ce963a42",
+   "B_windows": "9f04ce963a42",
+   "A_train": 7.9369,
+   "B_train": 7.9369,
+   "A_val": 7.9163,
+   "B_val": 7.9163
+  },
+  {
+   "update": 20,
+   "A_windows": "65eb0b63d519",
+   "B_windows": "65eb0b63d519",
+   "A_train": 7.6039,
+   "B_train": 7.6039,
+   "A_val": 7.5906,
+   "B_val": 7.5906
+  },
+  {
+   "update": 30,
+   "A_windows": "4ef34b1dd134",
+   "B_windows": "4ef34b1dd134",
+   "A_train": 7.241,
+   "B_train": 7.241,
+   "A_val": 7.244,
+   "B_val": 7.244
+  },
+  {
+   "update": 40,
+   "A_windows": "abbf710dcd20",
+   "B_windows": "abbf710dcd20",
+   "A_train": 6.8011,
+   "B_train": 6.8011,
+   "A_val": 6.7834,
+   "B_val": 6.7834
+  },
+  {
+   "update": 50,
+   "A_windows": "256ee51bb4a7",
+   "B_windows": "256ee51bb4a7",
+   "A_train": 6.3313,
+   "B_train": 6.3313,
+   "A_val": 6.2766,
+   "B_val": 6.2766
+  },
+  {
+   "update": 60,
+   "A_windows": "4b8490ac877b",
+   "B_windows": "4b8490ac877b",
+   "A_train": 5.9591,
+   "B_train": 5.9591,
+   "A_val": 5.8294,
+   "B_val": 5.8294
+  },
+  {
+   "update": 70,
+   "A_windows": "2d380e02aa74",
+   "B_windows": "2d380e02aa74",
+   "A_train": 5.4275,
+   "B_train": 5.4275,
+   "A_val": 5.4713,
+   "B_val": 5.4713
+  },
+  {
+   "update": 80,
+   "A_windows": "668fdf4c99ad",
+   "B_windows": "668fdf4c99ad",
+   "A_train": 5.121,
+   "B_train": 5.121,
+   "A_val": 5.2035,
+   "B_val": 5.2035
+  },
+  {
+   "update": 90,
+   "A_windows": "c2fbc4b1c587",
+   "B_windows": "c2fbc4b1c587",
+   "A_train": 4.8599,
+   "B_train": 4.8599,
+   "A_val": 4.9926,
+   "B_val": 4.9926
+  },
+  {
+   "update": 100,
+   "A_windows": "28224501acdd",
+   "B_windows": "28224501acdd",
+   "A_train": 4.8575,
+   "B_train": 4.8575,
+   "A_val": 4.8172,
+   "B_val": 4.8172
+  },
+  {
+   "update": 110,
+   "A_windows": "f8efee4a352f",
+   "B_windows": "f8efee4a352f",
+   "A_train": 4.7069,
+   "B_train": 4.7069,
+   "A_val": 4.6702,
+   "B_val": 4.6702
+  },
+  {
+   "update": 120,
+   "A_windows": "774a6a222e66",
+   "B_windows": "774a6a222e66",
+   "A_train": 4.5889,
+   "B_train": 4.5889,
+   "A_val": 4.5594,
+   "B_val": 4.5594
+  }
+ ],
+ "day5_perplexity": {
+  "untrained": 4360.0,
+  "unigram": 353.3,
+  "trained": 5.9
+ },
+ "day5_curve": {
+  "steps": [
+   0,
+   500,
+   1000,
+   1500,
+   2000,
+   2500,
+   3000,
+   3500,
+   4000,
+   4500,
+   5000,
+   5500,
+   6000
+  ],
+  "train_loss": [
+   null,
+   2.8673,
+   2.3954,
+   2.0624,
+   1.9696,
+   2.0063,
+   1.9182,
+   1.8163,
+   1.7301,
+   1.7716,
+   1.5966,
+   1.7153,
+   1.6131
+  ],
+  "val_64_windows": [
+   8.3794,
+   2.8761,
+   2.4262,
+   2.2225,
+   2.0987,
+   2.027,
+   1.9592,
+   1.9071,
+   1.8688,
+   1.8351,
+   1.802,
+   1.7971,
+   1.7833
+  ],
+  "scoreboard_whole_file": 1.777
+ }
+}

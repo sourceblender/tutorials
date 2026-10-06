@@ -1,0 +1,23 @@
+short run: 300 steps, batch 32 x 256 tokens on mps
+learning-rate schedule (all steps in runs/lr_schedule.csv): step 1: 5.00e-04  step 100: 5.00e-02  step 200: 1.00e-01  step 250: 5.50e-02  step 300: 1.00e-02
+step    1  loss 8.379  perplexity 4,355.9
+step   25  loss 5.840  perplexity 343.8
+step   50  loss 5.532  perplexity 252.7
+step   75  loss 5.297  perplexity 199.7
+step  100  loss 5.080  perplexity 160.8
+step  125  loss 5.086  perplexity 161.7
+step  150  loss 4.946  perplexity 140.6
+step  175  loss 4.979  perplexity 145.3
+step  200  loss 5.157  perplexity 173.6
+step  225  loss 5.108  perplexity 165.4
+step  250  loss 4.975  perplexity 144.8
+step  275  loss 4.834  perplexity 125.7
+step  300  loss 4.681  perplexity 107.9
+done in 40.1s
+Day 3 check passes
+
+the gremlin after 300 updates, writing from memory (nothing is saved):
+Once upon a time.
+Tom.
+When he said at Ben said, and ran. Tim was too to go.
+

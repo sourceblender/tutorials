@@ -1,0 +1,21 @@
+[project]
+name = "build-a-tiny-language-model"
+version = "1.0.0"
+description = "Companion code: build and train a 5M-parameter story language model in five days"
+requires-python = ">=3.12"
+dependencies = [
+    "morpheme==0.5.0",
+    "numpy==2.5.3",
+    "torch==2.14.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

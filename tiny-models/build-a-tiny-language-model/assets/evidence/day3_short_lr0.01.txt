@@ -1,0 +1,21 @@
+short run: 300 steps, batch 32 x 256 tokens on mps
+learning-rate schedule (all steps in runs/lr_schedule.csv): step 1: 5.00e-05  step 100: 5.00e-03  step 200: 1.00e-02  step 250: 5.50e-03  step 300: 1.00e-03
+step    1  loss 8.379  perplexity 4,355.9
+step   25  loss 5.651  perplexity 284.7
+step   50  loss 4.628  perplexity 102.3
+step   75  loss 4.157  perplexity 63.9
+step  100  loss 3.953  perplexity 52.1
+step  125  loss 3.912  perplexity 50.0
+step  150  loss 3.719  perplexity 41.2
+step  175  loss 3.508  perplexity 33.4
+step  200  loss 3.474  perplexity 32.3
+step  225  loss 3.482  perplexity 32.5
+step  250  loss 3.317  perplexity 27.6
+step  275  loss 3.123  perplexity 22.7
+step  300  loss 2.933  perplexity 18.8
+done in 44.2s
+Day 3 check passes
+
+the gremlin after 300 updates, writing from memory (nothing is saved):
+Once upon a time, there was a little girl named Lucy. She liked to play with her favorite toy, but she was going to make her mom and a big table. She was very excited. She asked her to have a big surprise for her.
+The girl smiled and said, "Wow, please!" The
