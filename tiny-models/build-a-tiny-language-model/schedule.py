@@ -1,4 +1,4 @@
-"""The learning-rate schedule, shared by Wednesday's short run and the full trainer.
+"""The learning-rate schedule, shared by Day 3's short run and the full trainer.
 
 Linear warm-up from near zero to the peak over the first `warmup` steps, then cosine decay from the peak down to
 10% of it at the last step. Step `warmup` is exactly the peak; when total > warmup, the last step is exactly 10%.

@@ -1,4 +1,4 @@
-"""Monday, last step: look at what the tokenizer produces, check it, and freeze the day's work.
+"""Day 1, last step: look at what the tokenizer produces, check it, and freeze the day's work.
 
 1. Shows how a few sentences are cut into pieces and ids.
 2. Round-trips the first 100 validation stories: decode(encode(text)) must give back the exact text.

@@ -1,4 +1,4 @@
-"""Tuesday's checks: shift, size, shape, starting loss and the causal mask.
+"""Day 2's checks: shift, size, shape, starting loss and the causal mask.
 
 1. The training objective in one picture: a 16-token window x and its target y = x shifted left by one.
 2. Parameter count of the week's model (expect 5,051,904).
@@ -84,7 +84,7 @@ def main():
         print(f"FAIL: {f}")
     if fails:
         sys.exit(1)
-    print("Tuesday checks pass")
+    print("Day 2 checks pass")
 
 
 if __name__ == "__main__":

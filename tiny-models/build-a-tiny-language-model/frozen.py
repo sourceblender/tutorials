@@ -1,4 +1,4 @@
-"""Monday's freeze, enforced: every later entry point calls check() before touching the data.
+"""Day 1's freeze, enforced: every later entry point calls check() before touching the data.
 
 Confirms data/FROZEN.txt exists, that it records the pinned hashes from day1_data.py and day1_tokenizer.py, and that
 train.txt, val.txt and tok4096.json on disk still match it. Exits with a message instead of letting a later day run
@@ -19,11 +19,11 @@ PINNED = {"train.txt": day1_data.EXPECT["train.txt"], "val.txt": day1_data.EXPEC
 def check():
     path = os.path.join("data", "FROZEN.txt")
     if not os.path.exists(path):
-        sys.exit("data/FROZEN.txt missing: finish Monday (day1_look.py) first")
+        sys.exit("data/FROZEN.txt missing: finish Day 1 (day1_look.py) first")
     fz = json.load(open(path))
     for name, file in FILES.items():
         if fz.get(name) != PINNED[name]:
-            sys.exit(f"FROZEN.txt records a different {name} than the tutorial's pinned one; rerun Monday")
+            sys.exit(f"FROZEN.txt records a different {name} than the tutorial's pinned one; rerun Day 1")
         if not os.path.exists(file) or hashlib.sha256(open(file, "rb").read()).hexdigest() != fz[name]:
-            sys.exit(f"{file} changed since Monday's freeze; rerun Monday's scripts")
+            sys.exit(f"{file} changed since Day 1's freeze; rerun Day 1's scripts")
     return fz

@@ -1,4 +1,4 @@
-"""Tuesday: one attention head, by hand, on four tokens.
+"""Day 2: one attention head, by hand, on four tokens.
 
 Builds tiny random queries, keys and values, computes softmax(Q K^T / sqrt(d) + causal mask) V step by step,
 prints the attention weights (zeros above the diagonal: no token reads the future), and checks the result

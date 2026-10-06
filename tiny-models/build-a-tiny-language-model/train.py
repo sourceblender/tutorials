@@ -1,25 +1,25 @@
-"""Thursday and Friday: the full trainer, built so it can run unattended and resume where it stopped.
+"""Days 4 and 5: the full trainer, built so it can run unattended and resume where it stopped.
 
 The recipe is the one we measured: 6,000 steps of 32 random windows of 256 tokens, AdamW lr 1e-3 betas (0.9, 0.95)
 weight decay 0.1, gradient clip 1.0, bf16 autocast where supported. Learning rate: linear warm-up to 1e-3 over 200
 steps, then cosine decay to 10% at the last step (schedule.py; its id is stored in every checkpoint).
 
-What makes it reliable (Thursday):
-- Tokens are encoded once and cached as a NumPy file next to the data, keyed by Monday's FROZEN.txt.
+What makes it reliable (Day 4):
+- Tokens are encoded once and cached as a NumPy file next to the data, keyed by Day 1's FROZEN.txt.
 - Every --eval-every steps: validation loss on a fixed set of windows (reported, never used to pick a checkpoint;
   for this teaching run the final step is the model), one JSON line in log.jsonl, and a checkpoint.
 - A checkpoint holds everything a resume needs: model, optimizer, step, the window-sampling generator, PyTorch's
-  RNG, the run's config, and Monday's input hashes. It is written to a temporary file and then renamed, so a crash
+  RNG, the run's config, and Day 1's input hashes. It is written to a temporary file and then renamed, so a crash
   mid-write never leaves a half checkpoint.
-- --resume refuses to continue if the config or Monday's inputs changed.
+- --resume refuses to continue if the config or Day 1's inputs changed.
 - A non-finite loss stops the run after an emergency save.
 - --stop-after N saves a checkpoint and exits cleanly after step N: a cooperative stop for testing resume. An abrupt
   interruption (Ctrl-C, a crash, a closed lid) has no handler here; it resumes from the latest periodic checkpoint
   and loses the steps since it.
 
 Usage:
-    uv run python train.py --out runs/main                # Friday's full run
-    uv run python train.py --out runs/main --resume       # continue from runs/main/checkpoint.pt
+    uv run python train.py --out runs/friday              # Day 5's full run
+    uv run python train.py --out runs/friday --resume     # continue from runs/friday/checkpoint.pt
     uv run python train.py --out runs/cpu --cpu-short     # smaller batch for CPU-only machines
 """
 import argparse, hashlib, json, math, os, sys, time
@@ -41,7 +41,7 @@ def tokens(name, fz, tok):
     cache = os.path.join("data", f"{name}.{fz[name + '.txt'][:12]}.npy")
     if not os.path.exists(cache):
         ids = tok.encode(open(os.path.join("data", "stories", f"{name}.txt"), encoding="utf-8").read()).ids
-        np.save(cache + ".tmp.npy", np.array(ids, dtype=np.int16))
+        np.save(cache + ".tmp.npy", np.array(ids, dtype=np.uint16))  # 4,096 ids fit in 16 unsigned bits (max 65,535)
         os.replace(cache + ".tmp.npy", cache)
     arr = np.load(cache, mmap_mode="r")
     if len(arr) != fz[f"{name}_tokens"]:
@@ -68,7 +68,7 @@ def save(path, state):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=os.path.join("runs", "main"))
+    ap.add_argument("--out", default=os.path.join("runs", "friday"))
     ap.add_argument("--steps", type=int, default=6000)
     ap.add_argument("--batch", type=int, default=32)
     ap.add_argument("--cpu-short", action="store_true", help="batch 8 and 1,000 steps, for CPU-only machines")
@@ -112,7 +112,7 @@ def main():
         if ck["config"] != config:
             sys.exit("--resume refused: this run's settings differ from the checkpoint's")
         if ck["inputs"] != inputs:
-            sys.exit("--resume refused: Monday's data or tokenizer changed since the checkpoint")
+            sys.exit("--resume refused: Day 1's data or tokenizer changed since the checkpoint")
         model.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
         gen.set_state(ck["gen"])

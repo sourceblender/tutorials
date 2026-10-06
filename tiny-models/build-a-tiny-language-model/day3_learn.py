@@ -1,9 +1,9 @@
-"""Wednesday: the learning step, small enough to watch.
+"""Day 3: the learning step, small enough to watch.
 
 --overfit  Train on ONE batch of 4 windows, over and over. A working learning step memorises it: the loss must
            fall below 1.0 within 100 steps (we measured 0.005 at step 100 on an M5 Air). If it can't memorise
            one batch, something in loss / backward / optimizer is broken. Exits 1 on failure.
-(default)  A short real run: 300 steps on random training windows, with the same recipe as Friday's full run
+(default)  A short real run: 300 steps on random training windows, with the same recipe as Day 5's full run
            (AdamW lr 1e-3, betas 0.9/0.95, weight decay 0.1, gradient clip 1.0). The learning rate warms up
            linearly to 1e-3 over 200 steps, then decays along a cosine to 10% at the last step (schedule.py).
            Writes the whole schedule to runs/lr_schedule.csv for plotting and prints a few points, then the loss
@@ -32,7 +32,7 @@ def lr_at(step, total):
 
 
 def autocast(dev):
-    """bf16 where the device supports it (Monday's setup_check reports this); otherwise plain float32."""
+    """bf16 where the device supports it (Day 1's setup_check reports this); otherwise plain float32."""
     if dev != "cpu":
         try:
             with torch.autocast(device_type=dev, dtype=torch.bfloat16):
@@ -107,7 +107,7 @@ def main():
         sys.exit(f"FAIL: could not memorise one batch (loss {loss.item():.3f} after {steps} steps)")
     if not a.overfit and loss.item() >= math.log(V) - 1.0:
         sys.exit(f"FAIL: loss {loss.item():.3f} has not moved clearly below the starting ~{math.log(V):.1f}")
-    print("Wednesday check passes")
+    print("Day 3 check passes")
 
 
 if __name__ == "__main__":

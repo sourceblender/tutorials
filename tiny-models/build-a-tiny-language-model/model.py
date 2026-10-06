@@ -1,4 +1,4 @@
-"""Tuesday: the small decoder language model used all week.
+"""Day 2: the small decoder language model used all week.
 
 Token + learned position embeddings, pre-norm transformer blocks (causal multi-head attention + a 4x MLP), a
 final LayerNorm, and an output head tied to the token embedding (one matrix both reads and writes tokens).

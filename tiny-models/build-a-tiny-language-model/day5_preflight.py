@@ -1,4 +1,4 @@
-"""Friday, before the full run: every earlier day's check, in order, stopping at the first failure.
+"""Day 5, before the full run: every earlier day's check, in order, stopping at the first failure.
 
 setup_check -> frozen inputs -> day2_check (shape, starting loss, causal mask) -> day3_learn --overfit (the learning
 step works) -> day4_resume_check (a stopped run resumes as the same run). About a minute and a half on our Air;
@@ -13,7 +13,7 @@ STEPS = [["setup_check.py", "--no-cli"], ["day2_check.py"], ["day3_learn.py", "-
 
 def main():
     frozen.check()
-    print("frozen inputs: match Monday's freeze")
+    print("frozen inputs: match Day 1's freeze")
     for step in STEPS:
         res = subprocess.run([sys.executable, *step], capture_output=True, text=True)
         last = (res.stdout.strip().splitlines() or [""])[-1]

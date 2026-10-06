@@ -1,4 +1,4 @@
-"""Monday: fetch the story data and split it into train/val.
+"""Day 1: fetch the story data and split it into train/val.
 
 Downloads the first 40 MiB of TinyStoriesV2-GPT4-train.txt from a pinned dataset revision (roneneldan/TinyStories,
 CDLA-Sharing-1.0) and splits it into stories on "<|endoftext|>", dropping the cut-off last piece. This is our own

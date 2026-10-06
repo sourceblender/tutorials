@@ -1,4 +1,4 @@
-"""Thursday's check: does resuming really continue the same run?
+"""Day 4's check: does resuming really continue the same run?
 
 Runs short trainings into a temporary folder on --device (default: this machine's training device; use --device cpu
 for the tightest comparison):
@@ -82,7 +82,7 @@ def main():
         print(f"FAIL: {f}")
     if fails:
         sys.exit(1)
-    print("Thursday check passes: resumed runs continued the same run")
+    print("Day 4 check passes: resumed runs continued the same run")
 
 
 if __name__ == "__main__":

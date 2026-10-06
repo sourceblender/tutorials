@@ -1,7 +1,7 @@
-"""Friday: load a trained model from disk, in a fresh Python process, and let it write.
+"""Day 5: load a trained model from disk, in a fresh Python process, and let it write.
 
-    uv run python generate.py --checkpoint runs/main/final.pt
-    uv run python generate.py --checkpoint runs/main/final.pt --prompt "The cat" --temperature 1.2 --top-k 0
+    uv run python generate.py --checkpoint runs/friday/final.pt
+    uv run python generate.py --checkpoint runs/friday/final.pt --prompt "The cat" --temperature 1.2 --top-k 0
 
 For each prompt it samples up to --max-tokens tokens: logits are divided by --temperature (lower = safer, higher =
 wilder), then only the --top-k most likely tokens are kept (0 keeps all). Sampling stops early at <|endoftext|>.
@@ -21,7 +21,7 @@ PROMPTS = ["Once upon a time", "Lily wanted to", "The big dog", "One day, Tom fo
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--checkpoint", default=os.path.join("runs", "main", "final.pt"))
+    ap.add_argument("--checkpoint", default=os.path.join("runs", "friday", "final.pt"))
     ap.add_argument("--prompt", action="append", help="repeatable; default: five story openings")
     ap.add_argument("--temperature", type=float, default=0.8)
     ap.add_argument("--top-k", type=int, default=40)

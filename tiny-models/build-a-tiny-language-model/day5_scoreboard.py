@@ -1,11 +1,11 @@
-"""Friday's scoreboard: how much better than guessing is the trained model?
+"""Day 5's scoreboard: how much better than guessing is the trained model?
 
 Computes three validation cross-entropies over exactly the same targets: every validation token after the first,
 each scored once (non-overlapping 256-token windows, then the shorter leftover tail). All three are recomputed on
 this machine:
   untrained  a freshly initialised model (seed 1234)
   unigram    add-one smoothed TOKEN frequencies counted on train, ignoring context
-  trained    the checkpoint you pass (default runs/main/final.pt)
+  trained    the checkpoint you pass (default runs/friday/final.pt)
 The scored target count is printed and checked to be identical for all three. A non-finite score or a checkpoint
 with non-finite weights fails.
 Pass rule for the full reference run, a tutorial smoke-quality criterion ("learned clearly more than which tokens
@@ -28,7 +28,7 @@ V, SEQ, RATIO = 4096, 256, 0.70
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--checkpoint", default=os.path.join("runs", "main", "final.pt"))
+    ap.add_argument("--checkpoint", default=os.path.join("runs", "friday", "final.pt"))
     ap.add_argument("--short", action="store_true")
     ap.add_argument("--device", choices=["auto", "cpu", "mps", "cuda"], default="auto")
     a = ap.parse_args()

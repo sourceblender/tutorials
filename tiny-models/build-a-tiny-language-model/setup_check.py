@@ -1,9 +1,9 @@
-"""Monday, first thing: check that this machine can run the week.
+"""Day 1, first thing: check that this machine can run the week.
 
 Reports the Python version, which PyTorch device the week will use (Apple GPU "mps", NVIDIA "cuda" or "cpu"),
 whether that device can train in bfloat16, and whether the morpheme CLI 0.5.0 is on PATH. Exits 1 if
-something required is missing, so you fix setup before Monday's data work rather than halfway through it.
---no-cli skips the morpheme CLI check: only Monday's tokenizer training needs it.
+something required is missing, so you fix setup before Day 1's data work rather than halfway through it.
+--no-cli skips the morpheme CLI check: only Day 1's tokenizer training needs it.
 """
 import platform, shutil, subprocess, sys
 

@@ -1,4 +1,4 @@
-"""Monday: train the tokenizer with morpheme, on the training split only.
+"""Day 1: train the tokenizer with morpheme, on the training split only.
 
 Runs the morpheme CLI (v0.5.0; install from https://github.com/sourceblender/morpheme/releases or
 `cargo install morpheme-cli`) on the training stories only, never on validation:
