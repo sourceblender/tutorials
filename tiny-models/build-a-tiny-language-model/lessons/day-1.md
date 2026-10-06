@@ -73,9 +73,12 @@ The final command should print:
 morpheme 0.5.0
 ```
 
-The executable goes in `~/.cargo/bin`. The installer also sets up your shell
-so later terminals can find it. The `source` line makes it available in this
-terminal right away. Only Day 1 needs this CLI; the other days use Python.
+The executable goes in `~/.cargo/bin`. The installer adds a setup line to
+your shell’s startup files so later terminals can find it. To skip those edits,
+set `MORPHEME_CLI_NO_MODIFY_PATH=1` for the installer. The `source` line makes
+the default installation available in this terminal right away. If it warns
+that another morpheme is earlier on PATH, check `morpheme --version` before
+continuing. Only Day 1 needs this CLI; the other days use Python.
 
 Now check the environment before doing any data work:
 

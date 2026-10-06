@@ -146,9 +146,10 @@ uv run python day3_learn.py --lr 0.1
 ```
 
 On the Air GPU this did not explode. It improved faster at first, then
-struggled near the peak and finished at loss 4.681, worse than the recipe’s
-3.372. Its opening was “Once upon a time. Tom.” Bigger steps changed the
-learning, but not in the way we wanted.
+struggled near the peak and finished around 4.7, worse than the recipe’s
+3.372. The plotted run ended at 4.681; another run ended at 4.7301 and
+wrote a different opening. GPU runs can vary at this larger rate. Bigger
+steps changed the learning, but not in the way we wanted.
 
 We also tried 0.01 and got 2.933 on this short run. The supplied 0.001 is a
 recipe we have not tuned. We haven’t tested whether the larger rate also
