@@ -1,0 +1,16 @@
+$ uv run python train.py --out runs/cpu-to-gpu --device cpu --batch 8 --steps 120 --eval-every 20 --stop-after 50
+training on cpu: steps 1-120, batch 8 x 256
+step    20  train 7.604  val 7.591  19,306 tok/s
+step    40  train 6.801  val 6.783  19,606 tok/s
+stopped after step 50 (checkpoint saved); resume with --resume
+[exit 0]
+
+$ uv run python train.py --out runs/cpu-to-gpu --device mps --batch 8 --steps 120 --eval-every 20 --resume   # same checkpoint, now on the Mac GPU
+resumed at step 51 from runs/cpu-to-gpu/checkpoint.pt
+training on mps: steps 51-120, batch 8 x 256
+step    60  train 5.959  val 5.830  28,245 tok/s
+step    80  train 5.122  val 5.204  37,156 tok/s
+step   100  train 4.858  val 4.816  39,607 tok/s
+step   120  train 4.588  val 4.560  40,846 tok/s
+done: runs/cpu-to-gpu/final.pt
+[exit 0]

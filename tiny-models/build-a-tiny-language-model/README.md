@@ -6,11 +6,11 @@ disk and one check that can fail.
 
 | Day | Lesson | You finish with |
 | --- | --- | --- |
-| Day 1 | [Give your model something to read](lessons/01-MONDAY.md) | Frozen story data, a trained tokenizer, a sentence round-tripped |
-| Day 2 | [Turn token IDs into guesses](lessons/02-TUESDAY.md) | A 5,051,904-parameter model whose forward pass, starting loss and causal mask check out |
-| Day 3 | [Make a guess less wrong](lessons/03-WEDNESDAY.md) | A learning step that memorises one batch and moves the loss on real stories |
-| Day 4 | [Save the experiment, then prove it resumes](lessons/04-THURSDAY.md) | Checkpoints that continue the same run, checked against an uninterrupted one |
-| Day 5 | [Read what your saved model writes](lessons/05-FRIDAY.md) | A trained model, a scoreboard against two baselines, and five stories |
+| Day 1 | [Give your model something to read](lessons/day-1.md) | Frozen story data, a trained tokenizer, a sentence round-tripped |
+| Day 2 | [Turn token IDs into guesses](lessons/day-2.md) | A 5,051,904-parameter model whose forward pass, starting loss and causal mask check out |
+| Day 3 | [Make a guess less wrong](lessons/day-3.md) | A learning step that memorises one batch and moves the loss on real stories |
+| Day 4 | [Save the experiment, then prove it resumes](lessons/day-4.md) | Checkpoints that continue the same run, checked against an uninterrupted one |
+| Day 5 | [Read what your saved model writes](lessons/day-5.md) | A trained model, a scoreboard against two baselines, and five stories |
 
 ## Before you start
 
