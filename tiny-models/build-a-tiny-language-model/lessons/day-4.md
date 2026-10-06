@@ -1,153 +1,189 @@
 
-# Day 4: Save the experiment, then prove it resumes
+# Day 4: Save the Experiment
 
-[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · **Day 4** · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
-
-> **Today’s question:** Can we stop training and continue the same experiment?
-
-> **Plan:** about an hour.
-> **Bring:** Day 3’s working learning loop and frozen inputs.
-> **Finish with:** a stopped-and-resumed experiment that passes the control comparison.
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-1.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-2.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-3.md) · **Day 4** · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-5.md)
 
 A checkpoint is a save game for the experiment, not just a bag of weights.
-Today turns the short learning loop into a run you can interrupt and continue.
-Weights are part of a checkpoint, but training also has an optimizer, a current
-step, a learning-rate schedule and a sampler that chooses the next windows.
-Saving weights alone cannot continue the same experiment.
+Today the gremlin gets that save game, and we test whether loading it really
+continues where it left off.
 
-## Follow the trainer's inputs
+Our full run takes minutes. Larger runs take hours or days, laptops sleep,
+and sometimes someone else needs the GPU. A working save means you can stop
+without sending the experiment back to the beginning.
 
-Open `train.py`. Before training, it checks Day 1's frozen data and tokenizer.
-It encodes each split once and caches token IDs in NumPy files, using the split
-hash in the cache filename. Later runs reuse the cache instead of repeatedly
-encoding the stories. Token IDs are stored as unsigned 16-bit integers (uint16): all 4,096
-vocabulary IDs fit below 65,536. They are converted to the
-integer type expected by the embedding when a batch is assembled.
+> **Time:** allow 20–30 minutes to read and explore, plus the stop/resume checks.
+> **You need:** the model and learning code, plus Day 1’s frozen inputs.
+> **You’ll have:** a saved experiment that continues the same sequence of training windows.
 
-Validation uses 64 fixed windows from the held-out split. They are chosen with
-a separate seeded generator, so evaluating does not consume training-sampler
-draws. Validation makes no gradient updates. This run reports validation at
-regular intervals and keeps the fixed final step, rather than selecting a
-checkpoint by the lowest observed validation loss.
+Today starts a fresh model. Day 3’s story came from the practice model in
+memory; we are not continuing those learned weights. These exercises, and
+Day 5’s final run, each start from random weights. We carry the project
+forward through the week, rather than one trained model.
 
-These 64 windows give us a quick sampled validation score.
-In Day 5, the scoreboard will evaluate the whole validation file and label
-that larger measurement separately.
+Before starting, jot down your guess: what must a save remember besides the
+model’s weights? We’ll open the save after trying the restart.
 
-## What belongs in the save file?
+## Stop at 50, continue at 51
 
-Before reading the list, predict what the gremlin must remember besides its
-weights to take the same next training step.
-
-The trainer's checkpoint contains:
-
-- Model weights and AdamW optimizer state.
-- The number of completed updates and the run configuration, including the
-  total schedule length, schedule identifier and evaluation interval.
-- The training-window generator's state and PyTorch's CPU random-number state.
-- The hashes of the training text, validation text and tokenizer.
-
-AdamW’s moving averages are the optimizer’s memory of previous gradients.
-Reloading weights without that memory preserves the model’s current predictions
-but changes its next update. The window generator matters for a different
-reason: different windows mean a different next lesson for the gremlin.
-To continue the experiment, it needs to pick up where it left off.
-
-This supplied model has no dropout; its attention call uses dropout probability
-zero. Training-window randomness comes from the saved CPU generator. If you add
-stochastic operations on a GPU, revisit the checkpoint’s device RNG state too.
-
-The next training step's learning rate can be recomputed from the stored
-configuration and completed step. This sampler has no sequential data cursor;
-its generator state determines the next random windows.
-
-A checkpoint is written to a temporary file and atomically renamed. Until
-that rename, the previous checkpoint remains in place. This prevents a
-partially written replacement from becoming the file that resume loads.
-
-## Try a small stop and restart
-
-The 120-step example stays inside the 200-step warmup, so its learning rate
-continues rising throughout the run. That is expected.
-
-Use a separate output folder for this exercise. If you repeat the exercise,
-choose a new `--out` folder; the trainer refuses to overwrite an existing run:
+Run these commands from the same project folder as the other days. Choose an
+unused output folder; if you repeat the exercise, give `--out` another name.
 
 ```bash
 uv run python train.py --out runs/lesson-resume --device cpu --batch 8 --steps 120 --eval-every 20 --stop-after 50
+```
+
+An Air CPU run printed the following. The `tok/s` column is speed, not a pass criterion; yours will vary:
+
+```text
+training on cpu: steps 1-120, batch 8 x 256
+step    20  train 7.604  val 7.591  17,958 tok/s
+step    40  train 6.801  val 6.783  18,877 tok/s
+stopped after step 50 (checkpoint saved); resume with --resume
+```
+
+The first run trains on CPU, evaluates every 20 updates and stops at 50.
+It writes a checkpoint at the stop even though 50 is between evaluations.
+Watch for the train and val columns. **Train loss** scores a batch the model
+learns from; **validation loss** scores reserved stories. Improving on those
+stories is more useful than merely memorizing the practice batch.
+
+Continue with the same settings:
+
+```bash
 uv run python train.py --out runs/lesson-resume --device cpu --batch 8 --steps 120 --eval-every 20 --resume
 ```
 
-The first command stops after update 50 and saves a checkpoint even though 50
-is not an evaluation step. The second should start at update 51. Keep the same
-settings on both commands. Changing the total number of steps changes the
-schedule and is intentionally refused when resuming.
+The restart printed:
 
-This is a cooperative stop. An abrupt interruption may leave only the latest
-periodic checkpoint. Think of a game that reloads your last save: some recent
-progress may need repeating.
+```text
+resumed at step 51 from runs/lesson-resume/checkpoint.pt
+training on cpu: steps 51-120, batch 8 x 256
+step    60  train 5.959  val 5.829  17,691 tok/s
+step    80  train 5.121  val 5.204  19,075 tok/s
+step   100  train 4.858  val 4.817  19,372 tok/s
+step   120  train 4.589  val 4.559  19,454 tok/s
+done: runs/lesson-resume/final.pt
+```
 
-## Compare with an uninterrupted control
+The restart should begin at update 51 and finish at 120. The learning rate
+keeps rising throughout this little run: warmup is fixed at 200 updates,
+while only the later decay stretches to fit `--steps`. We are testing the
+save, so a run entirely within warmup is fine.
+
+If you hit Ctrl-C instead of planning a stop, there is no special final save.
+You can resume from the last regular checkpoint, written at each evaluation,
+and redo the updates since that checkpoint. Think of a game that reloads your last save.
+
+## Open the save game
+
+How did your guess compare? The checkpoint contains:
+
+- **Weights:** the model’s learned numbers.
+- **Optimizer state:** AdamW’s memory of previous gradients. Reloading only
+  weights preserves its current predictions but changes the next update.
+- **Progress and settings:** completed updates and the learning-rate schedule.
+- **Random-number state:** especially the generator that chooses training
+  windows. Different windows mean a different next lesson for the gremlin.
+- **Input fingerprints:** the training text, validation text and tokenizer.
+
+That window generator is easy to miss. A restart that chooses different
+examples has resumed the model, but it has changed the experiment.
+
+The trainer writes a temporary file, then atomically renames it into place.
+Until the rename succeeds, the previous save stays intact. A half-written
+replacement does not become your next save game.
+
+## Compare with a run that never stopped
+
+Loading a file is a start. Comparing against an uninterrupted control tells
+us whether it continued correctly:
 
 ```bash
 uv run python day4_resume_check.py
 ```
 
-This command uses the available training device. To require CPU, add
-`--device cpu`. It copies data into a temporary workspace, leaving your real
-frozen manifest untouched even when it plants a bad hash for a refusal test.
+The diagnostic uses the available training device; add `--device cpu` to
+choose CPU. It compares a continuous run, a stop/restart and recovery after
+a planted non-finite loss. A **non-finite loss** is an invalid number such as
+NaN or infinity, the failure we planted in Day 3.
 
-The diagnostic compares three 120-update runs: uninterrupted; stop at 50 and
-resume; and a simulated non-finite loss at 30 followed by emergency resume.
-At each compared evaluation it checks the chosen training windows and the
-logged losses. It also checks that changed settings and inputs are refused.
-
-The selected windows must match exactly. Losses use a tolerance of 0.0001 on
-CPU and 0.05 on GPU. In our testing on the Air’s CPU, both resume paths
-matched windows and losses within 0.0001. The corresponding GPU check uses
-the wider tolerance to allow small differences in GPU arithmetic.
+At each compared evaluation, the selected training windows must match
+exactly. The losses must be close. On our CPU they matched to four decimal
+places. The GPU check allows a little more numerical drift while still
+requiring the same windows.
 
 ![CPU training timelines for 120 updates: uninterrupted and stopped at update 50 then resumed. At each of 12 evaluations, the sampled-window hashes and logged losses match.](https://raw.githubusercontent.com/sourceblender/tutorials/main/tiny-models/build-a-tiny-language-model/assets/day4-resume-timeline.png)
 
-This CPU run uses batch 8 and checks every 10 updates, as the automatic
-diagnostic does. Each equals sign marks matching sampled windows and losses
-at that evaluation. The two manual commands earlier check every 20 updates.
+This CPU comparison checks every 10 updates; our manual exercise checks every
+20. Each equals sign means both the sampled windows and losses matched.
 
-## Read the logs and status
+Look for these last lines, with each refusal check reporting `True`:
 
-`log.jsonl` records start, evaluation and final events. Evaluation rows include
-step, learning rate, train loss, validation loss and token throughput. A stopped
-run has a checkpoint but is not a completed run. Day 5's successful full run
-writes `final.pt` and a final event.
-
-The non-finite-loss guard stops before accepting the failed update. Its
-emergency checkpoint is distinct from the regular checkpoint. It stores the
-sampler state from before the failed batch, so a restart retries that batch
-rather than skipping it. Use `--resume-from` to select the emergency file,
-with the same run settings and without the simulation flag. The command
-below is a reference for a real emergency save; the automatic diagnostic
-already exercises this path for you:
-
-```bash
-uv run python train.py --out runs/lesson-resume --device cpu --batch 8 --steps 120 --eval-every 20 --resume-from runs/lesson-resume/emergency.pt
+```text
+resume with changed settings refused: True
+resume after the data changed refused: True
+Day 4 check passes: resumed runs continued the same run
 ```
 
-Use that command only if this output folder actually has an emergency
-checkpoint; the cooperative-stop example produces `checkpoint.pt` instead.
-The automatic diagnostic exercises emergency resume in its own temporary run.
+To see a refusal yourself, deliberately change just the total step count:
 
-Your save game now has a test: continue from it, compare with the uninterrupted
-run, and catch mismatched inputs before they change the experiment.
+```bash
+uv run python train.py --out runs/lesson-resume --device cpu --batch 8 --steps 200 --eval-every 20 --resume
+```
+
+This is an expected exit with code 1:
+
+```text
+--resume refused: this run's settings differ from the checkpoint's
+```
+
+The diagnostic also tests refusing changed settings and changed data. That
+is useful resistance: a save from a different recipe should not quietly pass
+as a continuation of this one. It does those checks in a temporary workspace,
+leaving your Day 1 files alone.
+
+## What happens before the loop?
+
+Open `train.py` after the experiment. It checks Day 1’s fingerprints, then
+encodes the stories once and caches the IDs for later runs. The cache uses
+`uint16`, a two-byte integer format: all 4,096 vocabulary IDs fit in it.
+
+Validation uses 64 fixed windows and its own random generator. Checking the
+score should not use up the random choices meant for training; that would
+change which batch comes next. Day 5’s scoreboard will score the whole
+validation file after training, rather than this quick sample.
+
+`log.jsonl` stores the progress records: step, learning rate, train loss,
+validation loss and throughput. A stopped run has a checkpoint. A completed
+run also has `final.pt`, the weights we’ll use to write stories.
+
+## A real failure needs investigation
+
+The diagnostic already tests recovery from an emergency save; there is no
+extra recovery command to run in today’s manual exercise. The planned
+stop at update 50 wrote `checkpoint.pt`, not `emergency.pt`.
+
+A real NaN deserves investigation. The emergency save remembers the state
+before the failed batch, so resume retries that batch. Retrying may repeat the
+same failure. Inspect the file and the recipe; if you change the recipe,
+start a separate run. A save preserves evidence, not a cure.
+
+Tomorrow we train the final gremlin, load its saved weights in a fresh process
+and let it talk. Today made sure those weights can come from an experiment
+that survives an interruption.
 
 ## If you get stuck
 
-- **Run folder already exists:** resume with the same settings, or select an unused --out folder for a separate experiment.
-- **Resume refuses settings or data:** restore the matching inputs and configuration; start a separate run if you intended to change them.
-- **Device error:** retry the isolated resume diagnostic with --device cpu. Compare on the device you plan to train on.
+- **Run folder already exists:** use `--resume` with the same settings, or an unused `--out` folder for a separate experiment.
+- **Resume refuses settings or data:** restore the matching recipe; start a separate run if you intended to change it.
+- **Device error:** run the isolated resume diagnostic with `--device cpu`.
 
-> **What this proves:** the saved state continues the sampled training trajectory
-> on the checked device, and changed settings or inputs are refused.
-> **What it doesn’t prove:** that an abrupt power cut saves the last update, or
-> that this test establishes behavior on an untested GPU backend.
+> **What this proves:** restarting picks the same training windows and keeps
+> the losses close. Changing the recipe or data is caught before training resumes. Loss tolerance
+> is 0.0001 on CPU and 0.05 on GPU; both require identical sampled windows.
+> **What it doesn’t prove:** that an abrupt interruption saves the last update.
+> We also tested stopping on the Air’s CPU at update 50 and completing on its
+> MPS GPU. That run completed, but cross-device continuation is not a promise
+> of identical arithmetic or support for every GPU.
 
-[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · **Day 4** · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-1.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-2.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-3.md) · **Day 4** · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/day-5.md)
