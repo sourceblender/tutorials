@@ -65,6 +65,9 @@ step   120  train 4.589  val 4.559  19,454 tok/s
 done: runs/lesson-resume/final.pt
 ```
 
+Day 5’s training chart puts the `train` and `val` curves side by side over
+the full run. Today’s rows are a first look at that comparison.
+
 The restart should begin at update 51 and finish at 120. The learning rate
 keeps rising throughout this little run: warmup is fixed at 200 updates,
 while only the later decay stretches to fit `--steps`. We are testing the

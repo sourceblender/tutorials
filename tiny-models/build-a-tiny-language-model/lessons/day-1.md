@@ -23,6 +23,8 @@ You need basic Python and terminal experience. We will supply the model code
 and explain it as we go; you do not need to know calculus to start. The reference
 machine is an Apple-silicon Mac. We tested on the M5 Air and on Ubuntu Linux
 x86_64 using its CPU. Linux installs CPU-only PyTorch to keep setup simple.
+For Linux, follow the smaller CPU training option in this course. It gives
+you a working model sooner, with rougher stories; Day 5 shows examples.
 There is no Intel Mac CLI build. Windows via WSL has not been tested.
 
 Most of today’s time goes into setup, reading the outputs and trying your own sentences. The data scripts themselves take seconds on our reference machine.
