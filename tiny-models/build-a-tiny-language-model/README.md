@@ -1,8 +1,8 @@
 # Build a tiny language model in five days
 
-Over one week you build a small story-writing language model from scratch, train it on your own computer, save
-it, load it back in a fresh process, and read what it writes. Each day ends with something on disk and one check
-that can fail.
+Over one week you assemble a small story-writing language model, train it from random weights on your own
+computer, save it, load it back in a fresh process, and read what it writes. Each day ends with something on
+disk and one check that can fail.
 
 | Day | Lesson | You finish with |
 | --- | --- | --- |
