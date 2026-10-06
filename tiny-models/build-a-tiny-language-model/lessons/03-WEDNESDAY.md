@@ -1,6 +1,10 @@
 
 # Wednesday: Make a guess less wrong
 
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · **Day 3** · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
+
+> **Today’s question:** Can the weights actually learn?
+
 Today the ignorance gets gradients. Yesterday the model returned scores for the next token. Today those scores
 will become a loss, and the loss will guide updates to the weights. We will
 first check whether the model can learn one batch, then train on changing
@@ -106,11 +110,6 @@ clear move below uniform guessing. Our CPU short process took 58.55 seconds
 on the M5 Air, including startup and encoding; the loop reported 47.4 seconds.
 Those are observations on this machine, not a typical-laptop budget.
 
-> **What this proves:** the fixed batch can be memorized, and the short run
-> improves next-token prediction on training batches.
-> **What it doesn’t prove:** generalization or story quality. Thursday adds
-> held-out validation; Friday lets you read the saved model’s output.
-
 ## When learning goes wrong
 
 The supplied loop checks loss before backward and the optimizer update. On
@@ -133,3 +132,10 @@ This entry point now checks Monday's frozen inputs before learning begins.
 By today's finish, you have seen weights learn both a fixed batch and changing
 story windows. Tomorrow you will make a longer run resumable and measure it
 on the held-out split.
+
+> **What this proves:** the fixed batch can be memorized, and the short run
+> improves next-token prediction on training batches.
+> **What it doesn’t prove:** generalization or story quality. Thursday adds
+> held-out validation; Friday lets you read the saved model’s output.
+
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · **Day 3** · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)

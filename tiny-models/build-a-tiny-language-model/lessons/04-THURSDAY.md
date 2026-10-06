@@ -1,6 +1,10 @@
 
 # Thursday: Save the experiment, then prove it resumes
 
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · **Day 4** · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
+
+> **Today’s question:** Can we stop training and continue the same experiment?
+
 A checkpoint is a save game for the experiment, not just a bag of weights.
 Today turns the short learning loop into a run you can interrupt and continue.
 Weights are part of a checkpoint, but training also has an optimizer, a current
@@ -92,11 +96,6 @@ CPU and 0.05 on GPU. In our testing on the Air’s CPU, both resume paths
 matched windows and losses within 0.0001. The corresponding GPU check uses
 the wider tolerance; it does not promise bit-identical GPU arithmetic.
 
-> **What this proves:** the saved state continues the sampled training trajectory
-> on the checked device, and changed settings or inputs are refused.
-> **What it doesn’t prove:** that an abrupt power cut saves the last update, or
-> that this test establishes behavior on an untested GPU backend.
-
 ## Read the logs and status
 
 `log.jsonl` records start, evaluation and final events. Evaluation rows include
@@ -121,3 +120,10 @@ Do not mistake the presence of a save file for a successful training result.
 
 At the end of today, the required result is a demonstrated resume on the
 reference device and a refusal of mismatched inputs, not just a file that loads.
+
+> **What this proves:** the saved state continues the sampled training trajectory
+> on the checked device, and changed settings or inputs are refused.
+> **What it doesn’t prove:** that an abrupt power cut saves the last update, or
+> that this test establishes behavior on an untested GPU backend.
+
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · **Day 4** · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)

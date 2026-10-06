@@ -1,6 +1,10 @@
 
 # Tuesday: Turn token IDs into guesses
 
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · **Day 2** · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
+
+> **Today’s question:** Can our model predict without cheating?
+
 Yesterday you made a tokenizer. Today you will assemble and understand a model that accepts its
 IDs and returns scores for the next token. It will not know how to write yet.
 Our finish line is a working forward pass with the right shape, a reasonable
@@ -163,3 +167,5 @@ time boundary. Tomorrow you will change its weights so its guesses improve.
 > at a sensible loss and passes the tested causal boundary.
 > **What it doesn’t prove:** that it has learned anything. Today’s weights are
 > still random; learning begins tomorrow.
+
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · **Day 2** · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)

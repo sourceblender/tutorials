@@ -1,6 +1,10 @@
 
 # Friday: Read what your saved model writes
 
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · **Day 5**
+
+> **Today’s question:** Did the trained model learn more than token frequency, and can we use the saved result?
+
 Now we wake the tiny thing up and let it tell stories. You have data, a tokenizer, a model, a learning step and a checkpoint
 protocol. Today you will run the supplied training budget and load the saved
 result in a fresh process. The finish line is text you can read, not a progress
@@ -64,8 +68,10 @@ event and `final.pt` mark completion; a checkpoint alone does not.
 
 Compare the trained model with an untrained model and a unigram baseline.
 The unigram baseline guesses from training-token frequencies without using
-the preceding context. It is a useful answer to “did this learn more than
-which tokens are common?”
+the preceding context. It adds one to the training count of each of the 4,096
+vocabulary IDs, normalizes those smoothed counts into probabilities, and
+averages the negative log probability of each validation target. It is a useful
+answer to “did this learn more than which tokens are common?”
 
 All three scores need the same tokenizer and evaluation targets. During
 training, the 64 fixed validation windows ended at cross-entropy 1.7833.
@@ -222,3 +228,5 @@ This is exploration,
 so have fun. Keep the checkpoint fixed and change one sampling knob at a time
 if you want to learn which choice caused the difference. Your funniest story
 does not replace the fixed samples; it gets its own page.
+
+[Day 1](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/01-MONDAY.md) · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · **Day 5**

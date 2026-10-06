@@ -1,6 +1,10 @@
 
 # Monday: Give your model something to read
 
+**Day 1** · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
+
+> **Today’s question:** Can we turn a fixed corpus into reproducible token IDs?
+
 This week you will build a small language model that writes short stories.
 Today dragons and spaghetti become integers. You will prepare its reading material and train its tokenizer: the part
 that turns text into integer IDs. By the end, you should have frozen training
@@ -12,16 +16,23 @@ machine is an Apple-silicon Mac. This new companion folder has been exercised
 on an M5 Air, including its CPU training and generation path. Linux and Windows
 have not yet been checked, nor has a separate CPU-only machine.
 
+The week’s path is short: Monday turns text into tokens; Tuesday turns tokens
+into logits; Wednesday makes the weights learn; Thursday makes the experiment
+resumable; Friday turns a checkpoint into stories.
+
 ## Prepare the environment
 
-Install uv using its installation guide, then open the companion repository.
-The checkout/link instructions will be finalized when the companion folder is
-published. From the repository root, run:
+Install Git and [uv](https://docs.astral.sh/uv/getting-started/installation/),
+then clone the companion repository and open the project folder:
 
 ```bash
-cd tiny-models/build-a-tiny-language-model
+git clone https://github.com/sourceblender/tutorials.git
+cd tutorials/tiny-models/build-a-tiny-language-model
 uv sync --locked
 ```
+
+All commands for the rest of the week run from this project folder. If you
+open a new terminal, return here before running the next lesson’s commands.
 
 The folder pins Python 3.12 and the package versions used by the recipe. Keep
 the lockfile: updating dependencies halfway through the week changes the
@@ -203,3 +214,5 @@ not installation or reader completion times. A cold install remains unmeasured.
 > the trained tokenizer round-trips the checked stories.
 > **What it doesn’t prove:** every input will be equally compact or that this
 > held-out slice represents all the stories you might want to write.
+
+**Day 1** · [Day 2](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/02-TUESDAY.md) · [Day 3](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/03-WEDNESDAY.md) · [Day 4](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/04-THURSDAY.md) · [Day 5](https://github.com/sourceblender/tutorials/blob/main/tiny-models/build-a-tiny-language-model/lessons/05-FRIDAY.md)
