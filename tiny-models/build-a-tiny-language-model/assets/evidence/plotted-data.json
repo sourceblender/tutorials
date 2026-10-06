@@ -59,37 +59,35 @@
   ]
  ],
  "day3": {
-  "loss_steps": [
-   1,
-   25,
-   50,
-   75,
-   100,
-   125,
-   150,
-   175,
-   200,
-   225,
-   250,
-   275,
-   300
-  ],
-  "loss": [
-   8.379,
-   7.442,
-   6.247,
-   5.183,
-   4.552,
-   4.278,
-   4.026,
-   3.799,
-   3.731,
-   3.735,
-   3.629,
-   3.493,
-   3.372
+  "loss_source": "day3_loss.csv (every update)",
+  "updates": 300,
+  "final_loss": 3.3718,
+  "rises": 110,
+  "biggest_rise": [
+   0.2191,
+   297
   ],
   "lr_source": "lr_schedule.csv (all 300 steps)"
+ },
+ "day3_lr": {
+  "0.1": {
+   "source": "day3_loss_lr0.1.csv",
+   "update_25": 5.8401,
+   "update_200": 5.1568,
+   "final": 4.6814
+  },
+  "0.001 (the recipe)": {
+   "source": "day3_loss.csv",
+   "update_25": 7.4422,
+   "update_200": 3.731,
+   "final": 3.3718
+  },
+  "0.01": {
+   "source": "day3_loss_lr0.01.csv",
+   "update_25": 5.6515,
+   "update_200": 3.4739,
+   "final": 2.9327
+  }
  },
  "day4": [
   {

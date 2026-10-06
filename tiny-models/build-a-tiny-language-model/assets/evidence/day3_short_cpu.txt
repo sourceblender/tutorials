@@ -1,0 +1,21 @@
+short run: 300 steps, batch 8 x 256 tokens on cpu
+learning-rate schedule (all steps in runs/lr_schedule.csv): step 1: 5.00e-06  step 100: 5.00e-04  step 200: 1.00e-03  step 250: 5.50e-04  step 300: 1.00e-04
+step    1  loss 8.364  perplexity 4,290.4
+step   25  loss 7.488  perplexity 1,786.5
+step   50  loss 6.306  perplexity 547.8
+step   75  loss 5.467  perplexity 236.7
+step  100  loss 4.920  perplexity 137.0
+step  125  loss 4.648  perplexity 104.4
+step  150  loss 4.584  perplexity 97.9
+step  175  loss 4.191  perplexity 66.1
+step  200  loss 4.298  perplexity 73.5
+step  225  loss 4.035  perplexity 56.5
+step  250  loss 3.906  perplexity 49.7
+step  275  loss 3.975  perplexity 53.2
+step  300  loss 3.916  perplexity 50.2
+done in 27.6s
+Day 3 check passes
+
+the gremlin after 300 updates, writing from memory (nothing is saved):
+Once upon a time, there was a little girl named Sam. Tim. Spot and he was a little bug was walking for a big tree, there was a little man with all day with a lot of fun.
+

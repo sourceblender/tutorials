@@ -79,20 +79,38 @@ for (x0, wd), x1 in zip(zip(xs, widths), xs[1:]):
 ax.text(5.5, 2.7, "The output layer reuses the token-embedding matrix (tied weights).", ha="center", fontsize=9, color=MUTED)
 fig.savefig(os.path.join(OUT, "day2-model-path.png"), dpi=200, bbox_inches="tight"); plt.close(fig)
 
-# 3. Wednesday: the 300-step run's loss and its learning-rate schedule, as two separate charts.
-rows = [l for l in open(os.path.join(EV, "day3_short.txt")) if l.startswith("step ")]
-steps = [int(re.search(r"step\s+(\d+)", l).group(1)) for l in rows]
-loss = [float(re.search(r"loss ([\d.]+)", l).group(1)) for l in rows]
+# 3. Day 3: the 300-update run's loss at EVERY update (so the bumps show) and its learning-rate schedule.
+def loss_csv(name):
+    rows = [l.split(",") for l in open(os.path.join(EV, name)).read().split("\n")[1:] if l]
+    return [int(r[0]) for r in rows], [float(r[2]) for r in rows]
+steps, loss = loss_csv("day3_loss.csv")
 lr = [tuple(map(float, l.split(","))) for l in open(os.path.join(EV, "lr_schedule.csv")).read().split("\n")[1:] if l]
-PLOTTED["day3"] = {"loss_steps": steps, "loss": loss, "lr_source": "lr_schedule.csv (all 300 steps)"}
+rises = [(loss[i] - loss[i - 1], steps[i]) for i in range(1, len(loss)) if loss[i] > loss[i - 1]]
+big = max(rises)
+PLOTTED["day3"] = {"loss_source": "day3_loss.csv (every update)", "updates": len(steps), "final_loss": loss[-1],
+                   "rises": len(rises), "biggest_rise": [round(big[0], 4), big[1]], "lr_source": "lr_schedule.csv (all 300 steps)"}
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(11, 3.6))
-a1.plot(steps, loss, marker="o", color=ACCENT); a1.axhline(math.log(4096), ls="--", color=MUTED)
+a1.plot(steps, loss, color=ACCENT, lw=1); a1.axhline(math.log(4096), ls="--", color=MUTED)
 a1.text(300, math.log(4096) + 0.12, "uniform guessing (ln 4096)", ha="right", fontsize=9, color=MUTED)
-a1.set_xlabel("update"); a1.set_ylabel("training loss"); a1.set_title("Loss on changing story windows (Air GPU)", fontsize=11)
+a1.annotate(f"a bump: +{big[0]:.2f} at update {big[1]}", (big[1], loss[steps.index(big[1])]), xytext=(150, 6.2),
+            fontsize=9, color=INK, arrowprops={"arrowstyle": "->", "color": MUTED})
+a1.set_xlabel("update"); a1.set_ylabel("training loss"); a1.set_title("Loss at every update (Air GPU)", fontsize=11)
 a2.plot([s for s, _ in lr], [r for _, r in lr], color=INK)
 a2.axvline(200, ls=":", color=MUTED); a2.text(203, 1e-3 * 0.95, "peak at 200", fontsize=9, color=MUTED, va="top")
 a2.set_xlabel("update"); a2.set_ylabel("learning rate"); a2.set_title("Warm-up, then cosine decay", fontsize=11)
 fig.tight_layout(); fig.savefig(os.path.join(OUT, "day3-loss-and-schedule.png"), dpi=200, bbox_inches="tight"); plt.close(fig)
+
+# 3b. Day 3 experiment: the same 300-update run at three peak learning rates (day3_learn.py --lr).
+runs = [("0.1", "day3_loss_lr0.1.csv", MUTED), ("0.001 (the recipe)", "day3_loss.csv", ACCENT), ("0.01", "day3_loss_lr0.01.csv", INK)]
+PLOTTED["day3_lr"] = {}
+fig, ax = plt.subplots(figsize=(8.5, 3.8))
+for label, name, color in runs:
+    st, lo = loss_csv(name)
+    PLOTTED["day3_lr"][label] = {"source": name, "update_25": lo[24], "update_200": lo[199], "final": lo[-1]}
+    ax.plot(st, lo, color=color, lw=1, label=f"peak lr {label}: ends {lo[-1]:.2f}")
+ax.set_xlabel("update"); ax.set_ylabel("training loss"); ax.set_ylim(2.5, 8.6)
+ax.set_title("Same run, three learning rates (Air GPU, 300 updates)", fontsize=11); ax.legend(frameon=False, fontsize=9)
+fig.savefig(os.path.join(OUT, "day3-learning-rates.png"), dpi=200, bbox_inches="tight"); plt.close(fig)
 
 # 4. Thursday: uninterrupted vs stopped-at-50-and-resumed, same sampled windows at every eval.
 def evals(name):

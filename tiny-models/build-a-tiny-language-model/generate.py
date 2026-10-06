@@ -19,6 +19,23 @@ from model import GPT, device
 PROMPTS = ["Once upon a time", "Lily wanted to", "The big dog", "One day, Tom found", "In the garden, there was"]
 
 
+def write(model, tok, prompt, dev, g, max_tokens=120, temperature=0.8, top_k=40):
+    """Continue `prompt` one sampled token at a time (Day 3 uses this too). The model only ever sees the last 256."""
+    eot = tok.token_to_id("<|endoftext|>")
+    idx = torch.tensor([tok.encode(prompt, add_special_tokens=False).ids], device=dev)
+    with torch.no_grad():
+        for _ in range(max_tokens):
+            logits = model(idx[:, -256:])[:, -1, :].float().cpu() / temperature
+            if top_k:
+                kth = torch.topk(logits, top_k).values[:, [-1]]
+                logits[logits < kth] = -float("inf")
+            nxt = torch.multinomial(F.softmax(logits, dim=-1), 1, generator=g)
+            if nxt.item() == eot:
+                break
+            idx = torch.cat([idx, nxt.to(dev)], dim=1)
+    return tok.decode(idx[0].tolist())
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--checkpoint", default=os.path.join("runs", "friday", "final.pt"))
@@ -32,25 +49,12 @@ def main():
     frozen.check()
     dev = device() if a.device == "auto" else a.device
     tok = morpheme.Tokenizer.from_file(os.path.join("data", "tok4096.json"))
-    eot = tok.token_to_id("<|endoftext|>")
     model = GPT().to(dev)
     model.load_state_dict(torch.load(a.checkpoint, map_location=dev, weights_only=True))
     model.eval()
     g = torch.Generator().manual_seed(a.seed)
     for prompt in a.prompt or PROMPTS:
-        idx = torch.tensor([tok.encode(prompt, add_special_tokens=False).ids], device=dev)
-        with torch.no_grad():
-            for _ in range(a.max_tokens):
-                logits = model(idx[:, -256:])[:, -1, :].float().cpu() / a.temperature
-                if a.top_k:
-                    kth = torch.topk(logits, a.top_k).values[:, [-1]]
-                    logits[logits < kth] = -float("inf")
-                nxt = torch.multinomial(F.softmax(logits, dim=-1), 1, generator=g)
-                if nxt.item() == eot:
-                    break
-                idx = torch.cat([idx, nxt.to(dev)], dim=1)
-        print(f"--- {prompt!r}\n{tok.decode(idx[0].tolist())}\n")
-
+        print(f"--- {prompt!r}\n{write(model, tok, prompt, dev, g, a.max_tokens, a.temperature, a.top_k)}\n")
 
 if __name__ == "__main__":
     main()

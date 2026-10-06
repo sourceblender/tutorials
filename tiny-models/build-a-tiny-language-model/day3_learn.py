@@ -6,8 +6,10 @@
 (default)  A short real run: 300 steps on random training windows, with the same recipe as Day 5's full run
            (AdamW lr 1e-3, betas 0.9/0.95, weight decay 0.1, gradient clip 1.0). The learning rate warms up
            linearly to 1e-3 over 200 steps, then decays along a cosine to 10% at the last step (schedule.py).
-           Writes the whole schedule to runs/lr_schedule.csv for plotting and prints a few points, then the loss
-           (and perplexity = exp(loss)) every 25 steps.
+           Writes the whole schedule to runs/lr_schedule.csv and every step's loss to runs/day3_loss.csv for
+           plotting, prints the loss (and perplexity = exp(loss)) every 25 steps, and at the end lets the
+           half-trained model write a few lines from memory. Nothing is saved: Day 4 starts a fresh model.
+--lr       The peak learning rate (default 1e-3). Try a much larger one and watch what the loss does.
 --cpu-short  Smaller batches for machines without a GPU.
 
 Both modes stop on a non-finite loss (NaN or inf) and save what they have to runs/emergency.pt first, so a
@@ -22,13 +24,10 @@ import torch.nn.functional as F
 
 import frozen
 import schedule
+from generate import write
 from model import GPT, device
 
-V, SEQ, LR, WARMUP = 4096, 256, 1e-3, 200
-
-
-def lr_at(step, total):
-    return schedule.lr_at(step, total, LR, WARMUP)
+V, SEQ, WARMUP = 4096, 256, 200
 
 
 def autocast(dev):
@@ -49,8 +48,14 @@ def main():
     ap.add_argument("--steps", type=int, default=300)
     ap.add_argument("--cpu-short", action="store_true", help="batch 8 instead of 32 (for CPU-only machines)")
     ap.add_argument("--device", choices=["auto", "cpu", "mps", "cuda"], default="auto")
+    ap.add_argument("--lr", type=float, default=1e-3, help="peak learning rate (the recipe uses 1e-3)")
     ap.add_argument("--simulate-nan-at", type=int, default=0, help="force a non-finite loss at this step (shows the guard)")
     a = ap.parse_args()
+    LR = a.lr
+
+    def lr_at(step, total):
+        return schedule.lr_at(step, total, LR, WARMUP)
+
     dev = device() if a.device == "auto" else a.device
     frozen.check()
     torch.manual_seed(1234)
@@ -81,7 +86,7 @@ def main():
         points = sorted({p for p in (1, WARMUP // 2, WARMUP, (WARMUP + steps) // 2, steps) if 1 <= p <= steps})
         where = "all steps in runs/lr_schedule.csv" if not a.simulate_nan_at else "file not written for a NaN test"
         print(f"learning-rate schedule ({where}):", "  ".join(f"step {p}: {lr_at(p, steps):.2e}" for p in points))
-    t0, loss = time.perf_counter(), None
+    t0, loss, losses = time.perf_counter(), None, []
     for step in range(1, steps + 1):
         if not a.overfit:
             for group in opt.param_groups:
@@ -100,14 +105,23 @@ def main():
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
+        losses.append((step, lr_at(step, steps) if not a.overfit else LR, loss.item()))
         if step == 1 or step % 25 == 0:
             print(f"step {step:4d}  loss {loss.item():.3f}  perplexity {math.exp(loss.item()):,.1f}")
     print(f"done in {time.perf_counter() - t0:.1f}s")
+    if not a.overfit:  # written before the check, so a failed experiment can still be plotted
+        os.makedirs("runs", exist_ok=True)
+        with open(os.path.join("runs", "day3_loss.csv"), "w") as f:
+            f.write("step,lr,loss\n" + "".join(f"{s},{r:.8f},{l:.4f}\n" for s, r, l in losses))
     if a.overfit and loss.item() >= 1.0:
         sys.exit(f"FAIL: could not memorise one batch (loss {loss.item():.3f} after {steps} steps)")
     if not a.overfit and loss.item() >= math.log(V) - 1.0:
         sys.exit(f"FAIL: loss {loss.item():.3f} has not moved clearly below the starting ~{math.log(V):.1f}")
     print("Day 3 check passes")
+    if not a.overfit:
+        model.eval()
+        print(f"\nthe gremlin after {steps} updates, writing from memory (nothing is saved):")
+        print(write(model, tok, "Once upon a time", dev, torch.Generator().manual_seed(1234), max_tokens=60))
 
 
 if __name__ == "__main__":
