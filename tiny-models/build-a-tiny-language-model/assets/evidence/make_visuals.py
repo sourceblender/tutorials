@@ -1,7 +1,8 @@
 """The week's evidence figures, drawn only from real outputs. Run from the tutorial folder after Monday:
     uv run --with matplotlib python assets/evidence/make_visuals.py assets/evidence assets
 Inputs in assets/evidence/: day3_short.txt (day3_learn.py on the Air GPU), lr_schedule.csv, resume-A/B-log.jsonl
-(two 120-update CPU runs, B stopped at 50 and resumed) and scoreboard.txt (day5_scoreboard.py). Day 1 reads the
+(two 120-update CPU runs, B stopped at 50 and resumed), scoreboard.txt (day5_scoreboard.py) and
+full-run-log.jsonl (train.py's log of the 6,000-update reference run). Day 1 reads the
 tokenizer Monday builds; Day 2 recomputes day2_attention.py's seed-0 matrix. Every plotted value is also written
 to plotted-data.json.
 """
@@ -128,5 +129,23 @@ for b, val in zip(bars, ppl.values()):
 ax.set_ylabel("perplexity (log scale, lower is better)")
 ax.set_title("Same 529,455 validation targets for all three", fontsize=11)
 fig.savefig(os.path.join(OUT, "day5-perplexity.png"), dpi=200, bbox_inches="tight"); plt.close(fig)
+# 6. Day 5: the full reference run's curves, from its own log (Air GPU, 6,000 updates).
+rows = [r for r in map(json.loads, open(os.path.join(EV, "full-run-log.jsonl")))]
+start = next(r for r in rows if r["event"] == "start")
+ev = [r for r in rows if r["event"] == "eval"]
+trained_whole = float(re.search(r"^trained\s+([\d.]+)", sb, re.M).group(1))
+PLOTTED["day5_curve"] = {"steps": [0] + [r["step"] for r in ev], "train_loss": [None] + [r["train_loss"] for r in ev],
+                         "val_64_windows": [start["val_ce"]] + [r["val_ce"] for r in ev], "scoreboard_whole_file": trained_whole}
+fig, ax = plt.subplots(figsize=(8.5, 3.8))
+ax.plot([r["step"] for r in ev], [r["train_loss"] for r in ev], marker="o", color=MUTED,
+        label="training loss (the batch at that update)")
+ax.plot([0] + [r["step"] for r in ev], [start["val_ce"]] + [r["val_ce"] for r in ev], marker="o", color=ACCENT,
+        label="validation loss (64 fixed windows, sampled)")
+ax.axhline(trained_whole, ls="--", color=INK, lw=1)
+ax.text(3000, 0.6, f"dashed line: Day 5 scoreboard on the whole validation file, {trained_whole:.4f}", ha="center", fontsize=9)
+ax.set_xlabel("update"); ax.set_ylabel("cross-entropy"); ax.set_ylim(0, 9)
+ax.set_title("The full reference run (Air GPU, 6,000 updates)", fontsize=11); ax.legend(frameon=False, fontsize=9)
+fig.savefig(os.path.join(OUT, "day5-training-curve.png"), dpi=200, bbox_inches="tight"); plt.close(fig)
+
 json.dump(PLOTTED, open(os.path.join(OUT, "plotted-data.json"), "w"), indent=1)
 print("wrote", sorted(os.listdir(OUT)), "| ppl", ppl, "| day4 all same:", all(A[s]["starts_sha"] == B[s]["starts_sha"] for s in A))
