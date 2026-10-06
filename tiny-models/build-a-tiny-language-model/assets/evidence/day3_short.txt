@@ -1,0 +1,17 @@
+short run: 300 steps, batch 32 x 256 tokens on mps
+learning-rate schedule (all steps in runs/lr_schedule.csv): step 1: 5.00e-06  step 50: 2.50e-04  step 100: 5.00e-04  step 200: 1.00e-03  step 250: 5.50e-04  step 300: 1.00e-04
+step    1  loss 8.379  perplexity 4,355.9
+step   25  loss 7.442  perplexity 1,706.5
+step   50  loss 6.247  perplexity 516.5
+step   75  loss 5.183  perplexity 178.2
+step  100  loss 4.552  perplexity 94.8
+step  125  loss 4.278  perplexity 72.1
+step  150  loss 4.026  perplexity 56.1
+step  175  loss 3.799  perplexity 44.7
+step  200  loss 3.731  perplexity 41.7
+step  225  loss 3.735  perplexity 41.9
+step  250  loss 3.629  perplexity 37.7
+step  275  loss 3.493  perplexity 32.9
+step  300  loss 3.372  perplexity 29.1
+done in 37.9s
+Wednesday check passes
